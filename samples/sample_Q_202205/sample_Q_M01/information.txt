@@ -1,0 +1,10 @@
+# nspeech: 読みデータ数
+nspeech: 5
+# speech: 読みデータ
+speech: J01,E02,J03,E04,J05
+# offset: 開始位置（サンプル単位）
+offset: 4800,9600,4800,9600,4800
+# nsplit: 分割数
+nsplit: 5
+# duration: 分割長（サンプル単位）
+duration: 24000,24000,24000,24000,58996
