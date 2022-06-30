@@ -18,7 +18,7 @@ def ckwav(d1,d2):
 
     for i in range(sourcewv.size):
 
-        if all(sourcewv[i]) == all(targetwv[i]):
+        if (sourcewv[i]==targetwv[i]):
             count+=1
 
     if count >= 70:
