@@ -3,7 +3,7 @@ import wave
 import numpy as np
 import matplotlib.pyplot as plt
 
-problem = r"samples\sample_Q_202205\sample_Q_E01\problem.wav"
+problem = r"samples\original\problem_2.wav"
 src_path = r"samples\JKspeech"
 Elements = ["E01.wav", "E02.wav", "E03.wav"]
 remainings = []
