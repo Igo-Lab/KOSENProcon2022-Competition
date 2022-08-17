@@ -3,7 +3,7 @@ import wave
 import numpy as np
 import matplotlib.pyplot as plt
 
-problem: str = r"samples\original\problem3.wav"
+problem: str = r"samples\sample_Q_202205\sample_Q_J01\problem2.wav"
 src_path: str = r"samples\JKspeech"
 frame_size = 0
 raw_data_offset = 0
@@ -29,7 +29,7 @@ def main():
         print(f"sum={np.sum(np.abs(problem_data))}")
 
     timeline = np.arange(0, frame_size)
-    for i in range(1, 3 + 1):
+    for i in range(1, 4 + 1):
         with wave.open(rf"{src_path}\J{i:02}.wav") as wr:
             is_first = True
             raw_data_offset = 0
@@ -38,8 +38,9 @@ def main():
             print(f"open: J{i:02}.wav")
 
             # frameもスキップ数の整数倍に成形しなければいけない
-            for j in range(0, wr.getnframes(), 5):
-                clipped = data[j : min(wr.getnframes(), j + frame_size)]
+            for j in range(problem_data.__len__(), -1, -5):
+                clipped = np.zeros((problem_data.__len__(),), dtype=np.int16)
+                clipped[j : problem_data.__len__()] = data[0 : data.__len__()]
 
                 translated = np.resize(clipped, (frame_size,))
                 translated[clipped.shape[0] :] = 0
