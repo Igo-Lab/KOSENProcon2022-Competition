@@ -52,3 +52,19 @@ for j in range(max(problem_data.__len__()+1, data.__len__()+1), problem_data.__l
     print(clipped[min(j-problem_data.__len__()-data.__len__(), 0):clipped.__len__()])
     print(data[0:min(problem_data.__len__(),problem_data.__len__()+data.__len__()-j)])
 ```
+
+
+## 全てを統合
+```py
+
+for j in range(1, problem_data.__len__()+data.__len__(), 1):
+    clip_starti = max(0, j-data.__len__())
+    clip_endi = min(j, problem_data.__len__())
+    data_starti = max(data.__len__()-j, 0)
+    data_endi = min(data.__len__(), data.__len__()+problem_data.__len__()-j)
+    clipped=np.zeros((problem_data.__len__(),),dtype=np.int16)
+    print(j, clip_starti, clip_endi, data_starti, data_endi)
+    clipped[clip_starti:j]=data[data_starti:data_endi]
+    print(clipped)
+
+```
