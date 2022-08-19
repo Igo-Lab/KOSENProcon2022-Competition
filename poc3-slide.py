@@ -44,18 +44,22 @@ def main():
                 data_endi = min(
                     data.__len__(), data.__len__() + problem_data.__len__() - j
                 )
-                clipped = np.zeros((problem_data.__len__(),), dtype=np.int16)
                 # print(j, clip_starti, clip_endi, data_starti, data_endi)
-                clipped[clip_starti:clip_endi] = data[data_starti:data_endi]
-                # print(clipped)
-                remaining = problem_data - clipped
+                subbed = (
+                    problem_data[clip_starti:clip_endi] - data[data_starti:data_endi]
+                )
+                remaining = (
+                    np.sum(np.abs(subbed))
+                    + np.sum(np.abs(problem_data[0:clip_starti]))
+                    + np.sum(np.abs(problem_data[clip_endi : len(problem_data)]))
+                )
+
                 if is_first:
-                    similarity = np.sum(np.abs(remaining))
+                    similarity = remaining
                     is_first = False
                 else:
-                    s_candidate = np.sum(np.abs(remaining))
-                    if similarity > s_candidate:
-                        similarity = s_candidate
+                    if similarity > remaining:
+                        similarity = remaining
                         raw_data_offset = j
 
             print(f"similarity: {similarity} offset:{raw_data_offset}")

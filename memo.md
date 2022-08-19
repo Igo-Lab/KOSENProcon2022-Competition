@@ -66,5 +66,4 @@ for j in range(1, problem_data.__len__()+data.__len__(), 1):
     print(j, clip_starti, clip_endi, data_starti, data_endi)
     clipped[clip_starti:j]=data[data_starti:data_endi]
     print(clipped)
-
 ```
