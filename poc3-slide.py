@@ -3,7 +3,7 @@ import wave
 import numpy as np
 import matplotlib.pyplot as plt
 
-problem: str = r"samples\sample_Q_202205\sample_Q_J01\problem2.wav"
+problem: str = r"samples\sample_Q_202205\sample_Q_J01\problem.wav"
 src_path: str = r"samples\JKspeech"
 frame_size = 0
 raw_data_offset = 0
@@ -37,30 +37,26 @@ def main():
             data = np.frombuffer(data, dtype=np.int16)
             print(f"open: J{i:02}.wav")
 
-            # frameもスキップ数の整数倍に成形しなければいけない
-            for j in range(problem_data.__len__(), -1, -5):
+            for j in range(1, problem_data.__len__() + data.__len__(), 48):
+                clip_starti = max(0, j - data.__len__())
+                clip_endi = min(j, problem_data.__len__())
+                data_starti = max(data.__len__() - j, 0)
+                data_endi = min(
+                    data.__len__(), data.__len__() + problem_data.__len__() - j
+                )
                 clipped = np.zeros((problem_data.__len__(),), dtype=np.int16)
-                clipped[j : problem_data.__len__()] = data[0 : data.__len__()]
-
-                translated = np.resize(clipped, (frame_size,))
-                translated[clipped.shape[0] :] = 0
-
-                remaining = problem_data - translated
-
-                # timeline = np.arange(0, 72000)
-                # plt.plot(timeline, problem_data)
-                # plt.show()
-
+                # print(j, clip_starti, clip_endi, data_starti, data_endi)
+                clipped[clip_starti:clip_endi] = data[data_starti:data_endi]
+                # print(clipped)
+                remaining = problem_data - clipped
                 if is_first:
                     similarity = np.sum(np.abs(remaining))
                     is_first = False
-                    translated_sum = np.sum(np.abs(translated))
                 else:
                     s_candidate = np.sum(np.abs(remaining))
                     if similarity > s_candidate:
                         similarity = s_candidate
                         raw_data_offset = j
-                        translated_sum = np.sum(np.abs(translated))
 
             print(f"similarity: {similarity} offset:{raw_data_offset}")
             similarity_list.append((i, similarity))
