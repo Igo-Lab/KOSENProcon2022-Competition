@@ -17,6 +17,22 @@
         "xstring": "cpp",
         "xutility": "cpp",
         "iterator": "cpp",
-        "algorithm": "cpp"
-    }
+        "algorithm": "cpp",
+        "memory": "cpp",
+        "random": "cpp",
+        "system_error": "cpp",
+        "type_traits": "cpp",
+        "xmemory": "cpp",
+        "xstddef": "cpp",
+        "atomic": "cpp",
+        "fstream": "cpp",
+        "ios": "cpp",
+        "istream": "cpp",
+        "list": "cpp",
+        "streambuf": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp",
+        "xiosbase": "cpp"
+    },
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4 }"
 }

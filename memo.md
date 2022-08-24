@@ -64,6 +64,17 @@ for j in range(1, problem_data.__len__()+data.__len__(), 1):
     data_endi = min(data.__len__(), data.__len__()+problem_data.__len__()-j)
     clipped=np.zeros((problem_data.__len__(),),dtype=np.int16)
     print(j, clip_starti, clip_endi, data_starti, data_endi)
-    clipped[clip_starti:j]=data[data_starti:data_endi]
+    #clipped[clip_starti:j]=data[data_starti:data_endi]
+
+    subbed = (
+        problem_data[clip_starti:clip_endi] - data[data_starti:data_endi]
+    )
+
+    remaining = (
+                    np.sum(np.abs(subbed))
+                    + np.sum(np.abs(problem_data[0:clip_starti]))
+                    + np.sum(np.abs(problem_data[clip_endi : len(problem_data)]))
+                )
+    print(remaining)
     print(clipped)
 ```
