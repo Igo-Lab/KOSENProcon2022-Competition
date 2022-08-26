@@ -6,6 +6,7 @@ from tokenize import String
 import call_test
 import numpy as np
 from functools import partial
+import requests
 
 window_title = '音声解析の鬼 (GUIテスト)'
 
@@ -49,7 +50,7 @@ def send_ans(data,list):
 
 
     #修正した回答の送信ボタン
-    fixed_send_btn = tk.Button(wid,text='修正した内容を送信',command=partial(post_fix_ans,box_fix.get))
+    fixed_send_btn = tk.Button(wid,text='修正した内容を送信',command=partial(post_fix_ans,box_fix))
     fixed_send_btn.place(x=250,y=50)
     
 
@@ -59,10 +60,10 @@ def post_ans(answer):
     print('自動判別の回答を送信した')
     print(answer)
 
-def post_fix_ans(answer):
+def post_fix_ans(func):
     
     print('修正済みの回答を送信した')
-    print(answer)
+    print(func.get())
 
 
 frm = tk.Tk()
