@@ -28,7 +28,7 @@ def call_main_prog():
 def send_ans(data,list):
     wid = tk.Tk()
 
-    wid.geometry('500x250')
+    wid.geometry('600x250')
     wid.title('回答送信確認画面')
 
     #判別結果の画面出力と、修正画面
@@ -36,13 +36,13 @@ def send_ans(data,list):
     box_name1 = tk.Label(wid,text='判別結果')
     box_name1.place(x=50,y=100)
     box_ans = tk.Entry(wid,width=50)
-    box_ans.place(x=115,y=100)
+    box_ans.place(x=120,y=100)
     box_ans.insert(tk.END,str(data))
     #修正入力側
     box_name2 = tk.Label(wid,text='修正を入力')
     box_name2.place(x=50,y=120)
     box_fix = tk.Entry(wid,width=50)
-    box_fix.place(x=115,y=120)
+    box_fix.place(x=120,y=120)
 
     #送信ボタン
     send_btn = tk.Button(wid,text='修正せずに回答を送信',command=partial(post_ans,data))
