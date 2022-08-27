@@ -69,7 +69,7 @@ def main():
     for e in similarity_list:
         print(f"J{e[0]:02}.wav similarity={e[1]}")
     elapssed_time = time.perf_counter() - start
-    print(f"Elapssed Time: {elapssed_time}[s]")
+    print(f"Elapsed Time: {elapssed_time}[s]")
 
     # timeline = np.arange(0, fn)
     # plt.plot(timeline, problem_data)
