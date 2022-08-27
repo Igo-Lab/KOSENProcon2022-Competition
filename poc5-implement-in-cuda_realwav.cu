@@ -48,10 +48,8 @@ __global__ void diffSum(short *problem, short *src, unsigned int *sums,
 
 int main() {
     // wave読み込み
-    AudioFile<short> problem_wave(
-        "/content/drive/MyDrive/Colab Notebooks/samples/original/problem4.wav");
-    AudioFile<short> srcJ01_wave(
-        "/content/drive/MyDrive/Colab Notebooks/samples/JKspeech/J01.wav");
+    AudioFile<short> problem_wave("samples/original/problem4.wav");
+    AudioFile<short> srcJ01_wave("samples/JKspeech/J01.wav");
 
     int problem_length = problem_wave.getNumSamplesPerChannel();
     int srcJ01_length = srcJ01_wave.getNumSamplesPerChannel();
