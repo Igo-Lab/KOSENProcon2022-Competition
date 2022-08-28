@@ -45,19 +45,6 @@ if __name__ == '__main__':
             box_fix = tk.Entry(wid,width=50)
             box_fix.place(x=120,y=120)
 
-            #判別結果の画面出力と、修正画面
-            #自動判別結果側
-            box_name1 = tk.Label(wid,text='判別結果')
-            box_name1.place(x=50,y=100)
-            box_ans = tk.Entry(wid,width=50)
-            box_ans.place(x=115,y=100)
-            box_ans.insert(tk.END,str(data))
-            #修正入力側
-            box_name2 = tk.Label(wid,text='修正を入力')
-            box_name2.place(x=50,y=120)
-            box_fix = tk.Entry(wid,width=50)
-            box_fix.place(x=115,y=120)
-
             #送信ボタン
             send_btn = tk.Button(wid,text='修正せずに回答を送信',command=partial(post_ans,data))
             send_btn.place(x=50,y=50)
@@ -105,7 +92,7 @@ if __name__ == '__main__':
         how_many_data = tk.Label(frm,text='分割データ取得数の入力')
         how_many_data.place(x=50,y=200)
         how_many_data_box = tk.Entry(frm,width=20)
-        how_many_data_box.place(x=180,y=200)
+        how_many_data_box.place(x=200,y=200)
 
         #チームトークンの確認
         token_confirm = tk.Label(frm,text='弊チームのトークン: ' + TOKEN)
