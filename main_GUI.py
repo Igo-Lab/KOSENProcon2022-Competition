@@ -1,82 +1,126 @@
+from fileinput import close
 import tkinter as tk
 from tkinter import messagebox
-import subprocess
-import tkinter
-from tokenize import String
-import call_test
+from tokenize import String, Token
+import call_test #仮でimportしている
 import numpy as np
 from functools import partial
 import requests
 
-window_title = '音声解析の鬼 (GUIテスト)'
+if __name__ == '__main__':
 
-#分割データを取得
-def get_prob_data():
-    print('問題データを取得')
-    #処理
-    print('完了')
+    try:
+        with open('config.txt','r',encoding='utf-8') as CONFIG_FILE:
+            TOKEN = CONFIG_FILE.readline()
+            SV_URL = CONFIG_FILE.readline()
+            CONFIG_FILE.close()
 
-#解析ロジックの呼び出し
-def call_main_prog():
-    print('解析を開始')
-    prb_data , sum_list = call_test.test()
-    print('完了')
+    except FileNotFoundError:
+        messagebox.showerror('エラー','config.txtが存在しません')
 
-    send_ans(prb_data,sum_list)
+    else:
 
-#回答送信の確認画面
-def send_ans(data,list):
-    wid = tk.Tk()
+        window_title = '音声解析の鬼 (GUIテスト)'
 
-    wid.geometry('600x250')
-    wid.title('回答送信確認画面')
+        #回答送信の確認画面
+        def send_ans(data,list):
+            wid = tk.Tk()
 
-    #判別結果の画面出力と、修正画面
-    #自動判別結果側
-    box_name1 = tk.Label(wid,text='判別結果')
-    box_name1.place(x=50,y=100)
-    box_ans = tk.Entry(wid,width=50)
-    box_ans.place(x=120,y=100)
-    box_ans.insert(tk.END,str(data))
-    #修正入力側
-    box_name2 = tk.Label(wid,text='修正を入力')
-    box_name2.place(x=50,y=120)
-    box_fix = tk.Entry(wid,width=50)
-    box_fix.place(x=120,y=120)
+            wid.geometry('500x250')
+            wid.title('回答送信確認画面')
 
-    #送信ボタン
-    send_btn = tk.Button(wid,text='修正せずに回答を送信',command=partial(post_ans,data))
-    send_btn.place(x=50,y=50)
+            wid.geometry('600x250')
+            wid.title('回答送信確認画面')
 
+            #判別結果の画面出力と、修正画面
+            #自動判別結果側
+            box_name1 = tk.Label(wid,text='判別結果')
+            box_name1.place(x=50,y=100)
+            box_ans = tk.Entry(wid,width=50)
+            box_ans.place(x=120,y=100)
+            box_ans.insert(tk.END,str(data))
+            #修正入力側
+            box_name2 = tk.Label(wid,text='修正を入力')
+            box_name2.place(x=50,y=120)
+            box_fix = tk.Entry(wid,width=50)
+            box_fix.place(x=120,y=120)
 
-    #修正した回答の送信ボタン
-    fixed_send_btn = tk.Button(wid,text='修正した内容を送信',command=partial(post_fix_ans,box_fix))
-    fixed_send_btn.place(x=250,y=50)
-    
+            #判別結果の画面出力と、修正画面
+            #自動判別結果側
+            box_name1 = tk.Label(wid,text='判別結果')
+            box_name1.place(x=50,y=100)
+            box_ans = tk.Entry(wid,width=50)
+            box_ans.place(x=115,y=100)
+            box_ans.insert(tk.END,str(data))
+            #修正入力側
+            box_name2 = tk.Label(wid,text='修正を入力')
+            box_name2.place(x=50,y=120)
+            box_fix = tk.Entry(wid,width=50)
+            box_fix.place(x=115,y=120)
 
-
-
-def post_ans(answer):
-    print('自動判別の回答を送信した')
-    print(answer)
-
-def post_fix_ans(func):
-    
-    print('修正済みの回答を送信した')
-    print(func.get())
+            #送信ボタン
+            send_btn = tk.Button(wid,text='修正せずに回答を送信',command=partial(post_ans,data))
+            send_btn.place(x=50,y=50)
 
 
-frm = tk.Tk()
+            #修正した回答の送信ボタン
+            fixed_send_btn = tk.Button(wid,text='修正した内容を送信',command=partial(post_fix_ans,box_fix))
+            fixed_send_btn.place(x=250,y=50)
+            
 
-frm.geometry('1000x500')
-frm.title(window_title)
 
-#データ取得ボタンの定義と配置
-get_prob_data_btn = tk.Button(frm,text='問題を取得',command=get_prob_data)
-get_prob_data_btn.place(x=50,y=450)
+        #分割データを取得
+        def get_prob_data(hmd):
+            print('問題データを取得')
+            print('分割データ数:'+ hmd.get())
+            #処理
+            print('完了')
 
-#解析開始ボタンの定義と配置
-start_main_program_btn = tk.Button(frm,text='解析開始!!',command=call_main_prog)
-start_main_program_btn.place(x=150,y=450)
+        #解析ロジックの呼び出し
+        def call_main_prog():
+            print('解析を開始')
+            prb_data , sum_list = call_test.test()
+            print('完了')
 
-frm.mainloop()
+            send_ans(prb_data,sum_list)
+
+        #判別結果を送信
+        def post_ans(answer):
+            print('自動判別の回答を送信した')
+            print(answer)
+
+        #修正した回答のデータを送信
+        def post_fix_ans(func):
+            
+            print('修正済みの回答を送信した')
+            print(func.get())
+
+
+        frm = tk.Tk()
+
+        frm.geometry('600x500')
+        frm.title(window_title)
+
+        #分割データの取得数指定の入力欄
+        how_many_data = tk.Label(frm,text='分割データ取得数の入力')
+        how_many_data.place(x=50,y=200)
+        how_many_data_box = tk.Entry(frm,width=20)
+        how_many_data_box.place(x=180,y=200)
+
+        #チームトークンの確認
+        token_confirm = tk.Label(frm,text='弊チームのトークン: ' + TOKEN)
+        token_confirm.place(x=50,y=150)
+
+        #サーバーURLの確認
+        server_url_show = tk.Label(frm,text='サーバーURL: '+ SV_URL)
+        server_url_show.place(x=50,y=130)
+
+        #データ取得ボタンの定義と配置
+        get_prob_data_btn = tk.Button(frm,text='問題を取得',command=partial(get_prob_data,how_many_data_box))
+        get_prob_data_btn.place(x=50,y=450)
+
+        #解析開始ボタンの定義と配置
+        start_main_program_btn = tk.Button(frm,text='解析開始!!',command=call_main_prog)
+        start_main_program_btn.place(x=150,y=450)
+
+        frm.mainloop()
