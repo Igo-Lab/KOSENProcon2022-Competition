@@ -14,6 +14,7 @@ def bun():
     text.delete('1.0', tk.END)
     text.insert('1.0',oput)
 
+
     #wavの取得
     suu=int(ge)
     i=0
