@@ -87,27 +87,32 @@ if __name__ == '__main__':
 
         frm.geometry('600x500')
         frm.title(window_title)
+        frm.configure(bg='black')
+
+        #GUIにでっかくタイトルを表示
+        big_tit = tk.Label(frm,text=window_title,fg='#77ff77',bg='black',font=("normal",30,"bold","italic"))
+        big_tit.place(x=0,y=0)
 
         #分割データの取得数指定の入力欄
-        how_many_data = tk.Label(frm,text='分割データ取得数の入力')
+        how_many_data = tk.Label(frm,text='分割データ取得数の入力',foreground='#ffffff',background='#000000')
         how_many_data.place(x=50,y=200)
         how_many_data_box = tk.Entry(frm,width=20)
         how_many_data_box.place(x=200,y=200)
 
         #チームトークンの確認
-        token_confirm = tk.Label(frm,text='弊チームのトークン: ' + TOKEN)
+        token_confirm = tk.Label(frm,foreground='#ffffff',background='#000000',text='弊チームのトークン: ' + TOKEN)
         token_confirm.place(x=50,y=150)
 
         #サーバーURLの確認
-        server_url_show = tk.Label(frm,text='サーバーURL: '+ SV_URL)
+        server_url_show = tk.Label(frm,foreground='#ffffff',background='#000000',text='サーバーURL: '+ SV_URL)
         server_url_show.place(x=50,y=130)
 
         #データ取得ボタンの定義と配置
-        get_prob_data_btn = tk.Button(frm,text='問題を取得',command=partial(get_prob_data,how_many_data_box))
+        get_prob_data_btn = tk.Button(frm,background='#ffbb44',text='問題を取得',command=partial(get_prob_data,how_many_data_box))
         get_prob_data_btn.place(x=50,y=450)
 
         #解析開始ボタンの定義と配置
-        start_main_program_btn = tk.Button(frm,text='解析開始!!',command=call_main_prog)
-        start_main_program_btn.place(x=150,y=450)
+        start_main_program_btn = tk.Button(frm,background='#ff0044',text='解析開始!!',font=("normal",20,"bold"),command=call_main_prog)
+        start_main_program_btn.place(x=150,y=420)
 
         frm.mainloop()
