@@ -31,27 +31,34 @@ if __name__ == '__main__':
 
             wid.geometry('600x250')
             wid.title('回答送信確認画面')
+            wid.configure(bg="black")
 
             #判別結果の画面出力と、修正画面
             #自動判別結果側
-            box_name1 = tk.Label(wid,text='判別結果')
+            box_name1 = tk.Label(wid,text='判別結果',bg="black",fg="#ffffff")
             box_name1.place(x=50,y=100)
             box_ans = tk.Entry(wid,width=50)
             box_ans.place(x=120,y=100)
             box_ans.insert(tk.END,str(data))
             #修正入力側
-            box_name2 = tk.Label(wid,text='修正を入力')
+            box_name2 = tk.Label(wid,text='修正を入力',bg="black",fg="#ffffff")
             box_name2.place(x=50,y=120)
             box_fix = tk.Entry(wid,width=50)
             box_fix.place(x=120,y=120)
 
+            #差分合計値リストの表示
+            list_name1 = tk.Label(wid,text='差分合計値リスト',bg='black',fg='#ffffff')
+            list_name1.place(x=0,y=150)
+            sum_list = tk.Label(wid,text=list,bg='black',fg='#ffffff')
+            sum_list.place(x=0,y=170)
+
             #送信ボタン
-            send_btn = tk.Button(wid,text='修正せずに回答を送信',command=partial(post_ans,data))
+            send_btn = tk.Button(wid,text='修正せずに回答を送信',bg="#ff0044",command=partial(post_ans,data))
             send_btn.place(x=50,y=50)
 
 
             #修正した回答の送信ボタン
-            fixed_send_btn = tk.Button(wid,text='修正した内容を送信',command=partial(post_fix_ans,box_fix))
+            fixed_send_btn = tk.Button(wid,text='修正した内容を送信',bg="#00dd44",command=partial(post_fix_ans,box_fix))
             fixed_send_btn.place(x=250,y=50)
             
 
