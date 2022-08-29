@@ -7,7 +7,7 @@ from tkinter.scrolledtext import ScrolledText
 def bun():
     ge=int(how.get())
     burl='https://procon33-practice.kosen.work/problem/chunks'
-    keywad={'token':'214756da1785484c9e578de68f9b58d421e8217816dc863cb8d28dd1274aac41','n':''+str(ge)}
+    keywad={'token':'トークン','n':''+str(ge)}
     oto=requests.post(burl,params=keywad)
     print(oto.status_code)
     oput=oto.json()
@@ -25,7 +25,7 @@ def bun():
     while  i<suu :
         num.append(oput['chunks'][i])
         curl.append('https://procon33-practice.kosen.work/problem/chunks'+str(num[i]))
-        tok={'token':'214756da1785484c9e578de68f9b58d421e8217816dc863cb8d28dd1274aac41'}
+        tok={'token':'トークン'}
         wsyu.append(requests.get(curl[i],tok))
         print(num[i])
         i=i+1
@@ -35,7 +35,7 @@ def bun():
 #確認
 def syutoku():
     surl='https://procon33-practice.kosen.work/problem'
-    params={'token':'214756da1785484c9e578de68f9b58d421e8217816dc863cb8d28dd1274aac41'}
+    params={'token':'トークン'}
     res=requests.get(surl,params)
     nin.delete(0, tk.END)
     nin.insert(0,res.status_code)
