@@ -20,47 +20,47 @@ if __name__ == '__main__':
 
     else:
 
-        window_title = '音声解析の鬼 (GUIテスト)'
+        window_title = '音声解析の鬼(仮) (GUIテスト)'
 
         #回答送信の確認画面
         def send_ans(data,list):
             wid = tk.Tk()
 
-            wid.geometry('500x250')
-            wid.title('回答送信確認画面')
-
-            wid.geometry('600x250')
+            wid.geometry('600x450')
             wid.title('回答送信確認画面')
             wid.configure(bg="black")
 
             #判別結果の画面出力と、修正画面
             #自動判別結果側
-            box_name1 = tk.Label(wid,text='判別結果',bg="black",fg="#ffffff")
-            box_name1.place(x=50,y=100)
+            box_name1 = tk.Label(wid,font=("normal",20),text='判別結果',bg="black",fg="#ffffff")
+            box_name1.place(x=0,y=0)
             box_ans = tk.Entry(wid,width=50)
-            box_ans.place(x=120,y=100)
+            box_ans.place(x=50,y=50)
             box_ans.insert(tk.END,str(data))
             #修正入力側
-            box_name2 = tk.Label(wid,text='修正を入力',bg="black",fg="#ffffff")
-            box_name2.place(x=50,y=120)
+            box_name2 = tk.Label(wid,font=("normal",20),text='修正を入力',bg="black",fg="#ffffff")
+            box_name2.place(x=0,y=150)
             box_fix = tk.Entry(wid,width=50)
-            box_fix.place(x=120,y=120)
+            box_fix.place(x=50,y=200)
 
             #差分合計値リストの表示
-            list_name1 = tk.Label(wid,text='差分合計値リスト',bg='black',fg='#ffffff')
-            list_name1.place(x=0,y=150)
+            list_name1 = tk.Label(wid,font=("normal",15),text='差分合計値リスト',bg='black',fg='#ffffff')
+            list_name1.place(x=0,y=80)
             sum_list = tk.Label(wid,text=list,bg='black',fg='#ffffff')
-            sum_list.place(x=0,y=170)
+            sum_list.place(x=0,y=115)
 
             #送信ボタン
-            send_btn = tk.Button(wid,text='修正せずに回答を送信',bg="#ff0044",command=partial(post_ans,data))
-            send_btn.place(x=50,y=50)
+            send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正せずに回答を送信',bg="#ff0044",command=partial(post_ans,data))
+            send_btn.place(x=140,y=280)
 
 
             #修正した回答の送信ボタン
-            fixed_send_btn = tk.Button(wid,text='修正した内容を送信',bg="#00dd44",command=partial(post_fix_ans,box_fix))
-            fixed_send_btn.place(x=250,y=50)
+            fixed_send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正した内容を送信',bg="#00dd44",command=partial(post_fix_ans,box_fix))
+            fixed_send_btn.place(x=150,y=350)
             
+            #画面下の注意書き
+            attention_label = tk.Label(wid,font=("normal",10,"bold"),text='確認ダイアログは出ません!!',bg='red',fg='#ffffff')
+            attention_label.place(x=190,y=410)
 
 
         #分割データを取得
@@ -69,6 +69,11 @@ if __name__ == '__main__':
             print('分割データ数:'+ hmd.get())
             #処理
             print('完了')
+
+        def get_prob_data_local():
+            print("ローカルフォルダからデータを参照")
+            #処理
+            print("完了")
 
         #解析ロジックの呼び出し
         def call_main_prog():
@@ -129,6 +134,10 @@ if __name__ == '__main__':
         #データ取得ボタンの定義と配置
         get_prob_data_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='問題を取得',command=partial(get_prob_data,how_many_data_box))
         get_prob_data_btn.place(x=10,y=420)
+
+        #ローカルファイル参照ボタン
+        get_prob_data_local_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='ファイルを参照',command=get_prob_data_local)
+        get_prob_data_local_btn.place(x=10,y=350)
 
         #解析開始ボタンの定義と配置
         start_main_program_btn = tk.Button(frm,background='#ff0044',text='解析開始!!',font=("normal",20,"bold"),command=call_main_prog)
