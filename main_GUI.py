@@ -1,6 +1,7 @@
 from fileinput import close
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import filedialog
 from tokenize import String, Token
 import call_test #仮でimportしている
 import numpy as np
@@ -62,6 +63,9 @@ if __name__ == '__main__':
             attention_label = tk.Label(wid,font=("normal",10,"bold"),text='確認ダイアログは出ません!!',bg='red',fg='#ffffff')
             attention_label.place(x=190,y=410)
 
+        #メイン画面に取得したファイル名を表示
+        def print_filenames(tko,names):
+            tko.insert(tk.END,names)
 
         #分割データを取得
         def get_prob_data(hmd):
@@ -70,9 +74,14 @@ if __name__ == '__main__':
             #処理
             print('完了')
 
+        #ローカルファイルからの参照
         def get_prob_data_local():
             print("ローカルフォルダからデータを参照")
-            #処理
+            typ = [('All Files','*')]
+            defdir = '/'
+            local_files = filedialog.askopenfilenames(filetypes=typ,initialdir= defdir)
+            print(local_files)
+            print_filenames(got_file_name_list,local_files)
             print("完了")
 
         #解析ロジックの呼び出し
