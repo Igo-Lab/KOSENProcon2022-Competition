@@ -103,8 +103,10 @@ if __name__ == '__main__':
             print('修正済みの回答を送信した')
             print(func.get())
 
+        #トークンとURL確認ウィンドウ
         def token_confirm_func():
-            messagebox.showinfo("塀チームのトークン",TOKEN)
+            msg = TOKEN + '\n' + SV_URL
+            messagebox.showinfo("弊チームのトークンとサーバURLの確認",msg)
 
         #メインウィンドウの設定
         frm = tk.Tk()
@@ -129,16 +131,12 @@ if __name__ == '__main__':
         got_file_name_list = tk.Entry(frm,width=70)
         got_file_name_list.place(x=0,y=300)
 
-        #チームトークンの確認
-        token_confirm = tk.Label(frm,font=("normal",20),foreground='#ffffff',background='#000000',text='弊チームのトークン: ')
-        token_confirm.place(x=0,y=100)
-            #トークン確認ボタン
+        #チームトークン・URLの確認
+        token_confirm = tk.Label(frm,font=("normal",20),foreground='#ffffff',background='#000000',text='URLと弊チームのトークン: ')
+        token_confirm.place(x=0,y=60)
+            #トークン・URL確認ボタン
         token_confirm_btn = tk.Button(frm,font=("normal",16),background='#00dd44',text='確認',command=token_confirm_func)
-        token_confirm_btn.place(x=260,y=110)
-
-        #サーバーURLの確認
-        server_url_show = tk.Label(frm,font=("normal",20),foreground='#ffffff',background='#000000',text='サーバーURL: '+ SV_URL)
-        server_url_show.place(x=0,y=60)
+        token_confirm_btn.place(x=350,y=70)
 
         #データ取得ボタンの定義と配置
         get_prob_data_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='問題を取得',command=partial(get_prob_data,how_many_data_box))
