@@ -96,14 +96,13 @@ if __name__ == '__main__':
             print_filenames(got_file_name_list3,os.path.basename(path[2]))
             print_filenames(got_file_name_list4,os.path.basename(path[3]))
             print_filenames(got_file_name_list5,os.path.basename(path[4]))
-            #print(filepathlst)
+            print(path)
             print("完了")
             return path
 
-        #↑のクッション的な関数
-        def search_files():
+        #クッション
+        def testtttttttt():
             filepathlst = get_prob_data_local()
-            
 
         #解析ロジックの呼び出し
         def call_main_prog():
@@ -179,11 +178,12 @@ if __name__ == '__main__':
         filepathlst = ['NULL'] * 5
 
         #ローカルファイル参照ボタン
-        get_prob_data_local_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='ファイルを参照',command=search_files)
+        get_prob_data_local_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='ファイルを参照',command=get_prob_data_local)
         get_prob_data_local_btn.place(x=10,y=360)
 
         #解析開始ボタンの定義と配置
         start_main_program_btn = tk.Button(frm,background='#ff0044',text='解析開始!!',font=("normal",20,"bold"),command=call_main_prog)
         start_main_program_btn.place(x=200,y=430)
 
+        #filepathlst=get_prob_data_local()
         frm.mainloop()
