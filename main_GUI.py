@@ -1,4 +1,5 @@
 from fileinput import close
+from re import I
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
@@ -7,6 +8,7 @@ import call_test #仮でimportしている
 import numpy as np
 from functools import partial
 import requests
+import os
 
 if __name__ == '__main__':
 
@@ -74,20 +76,39 @@ if __name__ == '__main__':
             #処理
             print('完了')
 
+        #パス出力の初期化
+        def clear_path_list():
+            got_file_name_list1.delete(0,tk.END)
+            got_file_name_list2.delete(0,tk.END)
+            got_file_name_list3.delete(0,tk.END)
+            got_file_name_list4.delete(0,tk.END)
+            got_file_name_list5.delete(0,tk.END)
+
         #ローカルファイルからの参照
         def get_prob_data_local():
             print("ローカルフォルダからデータを参照")
+            clear_path_list()
             typ = [('All Files','*')]
-            defdir = '/'
-            local_files = filedialog.askopenfilenames(filetypes=typ,initialdir= defdir)
-            print(local_files)
-            print_filenames(got_file_name_list,local_files)
+            defdir = '/home/naoto/Desktop/'
+            path = filedialog.askopenfilenames(filetypes=typ,initialdir= defdir)
+            print_filenames(got_file_name_list1,os.path.basename(path[0]))
+            print_filenames(got_file_name_list2,os.path.basename(path[1]))
+            print_filenames(got_file_name_list3,os.path.basename(path[2]))
+            print_filenames(got_file_name_list4,os.path.basename(path[3]))
+            print_filenames(got_file_name_list5,os.path.basename(path[4]))
+            #print(filepathlst)
             print("完了")
+            return path
+
+        #↑のクッション的な関数
+        def search_files():
+            filepathlst = get_prob_data_local()
+            
 
         #解析ロジックの呼び出し
         def call_main_prog():
             print('解析を開始')
-            prb_data , sum_list = call_test.test()
+            prb_data , sum_list = call_test.test(filepathlst)
             print('完了')
 
             send_ans(prb_data,sum_list)
@@ -121,15 +142,27 @@ if __name__ == '__main__':
 
         #分割データの取得数指定の入力欄
         how_many_data = tk.Label(frm,font=("normal",20),text='分割データ取得数の入力',foreground='#ffffff',background='#000000')
-        how_many_data.place(x=0,y=200)
+        how_many_data.place(x=0,y=140)
         how_many_data_box = tk.Entry(frm,width=20)
-        how_many_data_box.place(x=320,y=210)
+        how_many_data_box.place(x=320,y=150)
 
         #取得したデータのファイル名一覧表示
-        got_file_name = tk.Label(frm,font=("normal",20),text='取得した分割データ一覧:',bg="#000000",fg="#ffffff")
-        got_file_name.place(x=0,y=260)
-        got_file_name_list = tk.Entry(frm,width=70)
-        got_file_name_list.place(x=0,y=300)
+        got_file_name = tk.Label(frm,font=("normal",15),text='取得した分割データ一覧:',bg="#000000",fg="#ffffff")
+        got_file_name.place(x=0,y=200)
+        got_file_name_list1 = tk.Entry(frm,width=70)
+        got_file_name_list1.place(x=0,y=240)
+        got_file_name_list2 = tk.Entry(frm,width=70)
+        got_file_name_list2.place(x=0,y=260)
+        got_file_name_list3 = tk.Entry(frm,width=70)
+        got_file_name_list3.place(x=0,y=280)
+        got_file_name_list4 = tk.Entry(frm,width=70)
+        got_file_name_list4.place(x=0,y=300)
+        got_file_name_list5 = tk.Entry(frm,width=70)
+        got_file_name_list5.place(x=0,y=320)
+
+        #ファイルパス一覧の初期化ボタン
+        clearlist_btn = tk.Button(frm,font=("normal",15),background='#0077bb',fg='#ffffff',text='パスのリセット',command=clear_path_list)
+        clearlist_btn.place(x=400,y=190)
 
         #チームトークン・URLの確認
         token_confirm = tk.Label(frm,font=("normal",20),foreground='#ffffff',background='#000000',text='URLと弊チームのトークン: ')
@@ -140,14 +173,17 @@ if __name__ == '__main__':
 
         #データ取得ボタンの定義と配置
         get_prob_data_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='問題を取得',command=partial(get_prob_data,how_many_data_box))
-        get_prob_data_btn.place(x=10,y=420)
+        get_prob_data_btn.place(x=10,y=430)
+
+        #ファイルパスの格納する変数を定義
+        filepathlst = ['NULL'] * 5
 
         #ローカルファイル参照ボタン
-        get_prob_data_local_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='ファイルを参照',command=get_prob_data_local)
-        get_prob_data_local_btn.place(x=10,y=350)
+        get_prob_data_local_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='ファイルを参照',command=search_files)
+        get_prob_data_local_btn.place(x=10,y=360)
 
         #解析開始ボタンの定義と配置
         start_main_program_btn = tk.Button(frm,background='#ff0044',text='解析開始!!',font=("normal",20,"bold"),command=call_main_prog)
-        start_main_program_btn.place(x=200,y=420)
+        start_main_program_btn.place(x=200,y=430)
 
         frm.mainloop()
