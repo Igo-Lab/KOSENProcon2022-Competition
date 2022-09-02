@@ -1,4 +1,5 @@
 from fileinput import close
+from genericpath import isfile
 from re import I
 import tkinter as tk
 from tkinter import messagebox
@@ -87,26 +88,47 @@ if __name__ == '__main__':
         #ローカルファイルからの参照
         def get_prob_data_local():
             print("ローカルフォルダからデータを参照")
+                #何らかの理由でpathlistが存在した場合に削除
+            if os.path.isfile('pathlist') == True:
+                os.remove('pathlist')
+            else:
+                pass
             clear_path_list()
             typ = [('All Files','*')]
             defdir = '/home/naoto/Desktop/'
-            path = filedialog.askopenfilenames(filetypes=typ,initialdir= defdir)
+            path = list(filedialog.askopenfilenames(filetypes=typ,initialdir= defdir))
+                #ファイル読み込み後、要素数が不足している場合にNULLで補完する
+            if len(path)<5:
+                for i in range(5-len(path)):
+                    path.append('NULL')
+            else:
+                pass
             print_filenames(got_file_name_list1,os.path.basename(path[0]))
             print_filenames(got_file_name_list2,os.path.basename(path[1]))
             print_filenames(got_file_name_list3,os.path.basename(path[2]))
             print_filenames(got_file_name_list4,os.path.basename(path[3]))
             print_filenames(got_file_name_list5,os.path.basename(path[4]))
-            print(path)
-            print("完了")
-            return path
+                #tkinterのボタンコマンドにおいて、うまく変数間で代入できないので外部ファイルにメモ
+            f = open('pathlist','a',encoding='utf-8')
 
-        #クッション
-        def testtttttttt():
-            filepathlst = get_prob_data_local()
+            for j in range(len(path)):
+                f.write(path[j]+'\n')
+
+            f.close()
+            print("完了")
 
         #解析ロジックの呼び出し
         def call_main_prog():
             print('解析を開始')
+                #pathlistにメモした内容を再度読み込み＆解析ロジックにパスを渡す
+            try:
+                with open('pathlist','r',encoding='utf-8') as r:
+                    filepathlst = r.readlines()
+                    print(filepathlst)
+                    r.close()
+
+            except FileNotFoundError:
+                messagebox.showerror('ファイルパス参照エラー','pathlistからパスを読み取れませんでした')
             prb_data , sum_list = call_test.test(filepathlst)
             print('完了')
 
@@ -146,6 +168,8 @@ if __name__ == '__main__':
         how_many_data_box.place(x=320,y=150)
 
         #取得したデータのファイル名一覧表示
+            #エラー回避のための配列定義
+        filepathlst = [] * 5
         got_file_name = tk.Label(frm,font=("normal",15),text='取得した分割データ一覧:',bg="#000000",fg="#ffffff")
         got_file_name.place(x=0,y=200)
         got_file_name_list1 = tk.Entry(frm,width=70)
@@ -174,9 +198,6 @@ if __name__ == '__main__':
         get_prob_data_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='問題を取得',command=partial(get_prob_data,how_many_data_box))
         get_prob_data_btn.place(x=10,y=430)
 
-        #ファイルパスの格納する変数を定義
-        filepathlst = ['NULL'] * 5
-
         #ローカルファイル参照ボタン
         get_prob_data_local_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='ファイルを参照',command=get_prob_data_local)
         get_prob_data_local_btn.place(x=10,y=360)
@@ -185,5 +206,5 @@ if __name__ == '__main__':
         start_main_program_btn = tk.Button(frm,background='#ff0044',text='解析開始!!',font=("normal",20,"bold"),command=call_main_prog)
         start_main_program_btn.place(x=200,y=430)
 
-        #filepathlst=get_prob_data_local()
         frm.mainloop()
+        os.remove('pathlist')
