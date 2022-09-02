@@ -95,7 +95,11 @@ if __name__ == '__main__':
                 pass
             clear_path_list()
             typ = [('All Files','*')]
-            defdir = '/home/naoto/Desktop/'
+            defdir = './procon22-wav/'
+            if os.path.exists(defdir) == False:
+                os.makedirs('./procon22-wav/')
+            else:
+                pass
             path = list(filedialog.askopenfilenames(filetypes=typ,initialdir= defdir))
                 #ファイル読み込み後、要素数が不足している場合にNULLで補完する
             if len(path)<5:
