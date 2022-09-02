@@ -207,4 +207,8 @@ if __name__ == '__main__':
         start_main_program_btn.place(x=200,y=430)
 
         frm.mainloop()
-        os.remove('pathlist')
+
+        if os.path.isfile('pathlist') == True:
+            os.remove('pathlist')
+        else:
+            pass
