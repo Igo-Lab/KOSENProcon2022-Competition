@@ -52,12 +52,10 @@ int main() {
     // wave読み込み
     AudioFile<short> problem_wave("samples/original/problem4.wav");
     AudioFile<short> srcJ01_wave("samples/JKspeech/J01.wav");
-    thrust::host<AudioFile<short>> baseAudios(BASE_AUDIO_N);
+    std::vector<AudioFile<short>> baseAudios(BASE_AUDIO_N);
 
-    for (auto i = 0; i < 2; i++) {
-        for (auto j = 0; j < BASE_AUDIO_N; j++) {
-            baseAudios[i * BASE_AUDIO_N / 2 + j] = new AudioFile<short>("")
-        }
+    for (auto j = 0; j <= BASE_AUDIO_N; j++) {
+        baseAudios[i] = new AudioFile<short>("" + ".wav");
     }
 
     int problem_length = problem_wave.getNumSamplesPerChannel();
