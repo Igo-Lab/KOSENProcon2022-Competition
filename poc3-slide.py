@@ -3,7 +3,7 @@ import wave
 import numpy as np
 import matplotlib.pyplot as plt
 
-problem: str = r"samples\sample_Q_202205\sample_Q_J01\problem1.wav"
+problem: str = r"samples/original/problem4.wav"
 src_path: str = r"samples\JKspeech"
 frame_size = 0
 raw_data_offset = 0
@@ -29,15 +29,15 @@ def main():
         print(f"sum={np.sum(np.abs(problem_data))}")
 
     timeline = np.arange(0, frame_size)
-    for i in range(1, 1 + 1):
-        with wave.open(rf"{src_path}\J{i:02}.wav") as wr:
+    for i in range(1, 2 + 1):
+        with wave.open(rf"{src_path}\{i+44}.wav") as wr:
             is_first = True
             raw_data_offset = 0
             data = wr.readframes(-1)
             data = np.frombuffer(data, dtype=np.int16)
-            print(f"open: J{i:02}.wav")
+            print(f"open: {i+44}.wav")
 
-            for j in range(1, problem_data.__len__() + data.__len__(), 1):
+            for j in range(1, problem_data.__len__() + data.__len__(), 44):
                 clip_starti = max(0, j - data.__len__())
                 clip_endi = min(j, problem_data.__len__())
                 data_starti = max(data.__len__() - j, 0)

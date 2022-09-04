@@ -33,7 +33,7 @@ double cpuSecond() {
 
 __global__ void diffSum(short *problem, short *src, unsigned int *sums, const int problemLen, const int sourceLen) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int index = idx + 1;  // 1 start
+    int index = idx * SKIP_N + 1;  // 1 start
     if (index < (problemLen + sourceLen)) {
         int clip_starti = max(0, index - sourceLen);
         int clip_endi = min(index, problemLen);
@@ -92,15 +92,17 @@ int main() {
 
     dim3 block(512);
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
-        thrust::device_vector<unsigned int> sums_d(problem_length + baseAudio_length[i] - 2);
+        thrust::device_vector<unsigned int> sums_d((problem_length + baseAudio_length[i] - 2) / SKIP_N);
 
-        dim3 grid((problem_length + baseAudio_length[i] + block.x - 1 - 1) / block.x);
+        dim3 grid(((problem_length + baseAudio_length[i] - 2) / SKIP_N + block.x - 1) / block.x);
         printf("baseAudio ID: %d, Block: %d, Grid: %d\n", i + 1, block.x, grid.x);
+        printf("sums_d size: %d, %d\n", (problem_length + baseAudio_length[i] - 2) / SKIP_N, grid.x * block.x);
         diffSum<<<grid, block>>>(thrust::raw_pointer_cast(problem_d.data()), thrust::raw_pointer_cast(baseAudios_d[i].data()), thrust::raw_pointer_cast(sums_d.data()), problem_length, baseAudio_length[i]);
         sums[i].sum = thrust::reduce(thrust::device, sums_d.begin(), sums_d.end(), UINT_MAX, thrust::minimum<unsigned int>());
         sums[i].id = i;
     }
 
+    std::sort(sums, sums + BASE_AUDIO_N, [](const min_sum &a, const min_sum &b) { return a.sum < b.sum; });
     for (auto s : sums) {
         printf("ID: %d SUM: %d\n", s.id, s.sum);
     }
