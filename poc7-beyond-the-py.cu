@@ -18,7 +18,7 @@
 #include "AudioFile.h"
 
 #define BASE_AUDIO_N (88)
-#define SKIP_N (44)
+#define SKIP_N (22)
 
 typedef struct {
     unsigned int sum;
@@ -90,7 +90,7 @@ int main() {
         baseAudios_d[i] = baseAudios[i].samples[0];
     }
 
-    dim3 block(512);
+    dim3 block(256);
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
         thrust::device_vector<unsigned int> sums_d((problem_length + baseAudio_length[i] - 2) / SKIP_N);
 
@@ -103,9 +103,12 @@ int main() {
     }
 
     std::sort(sums, sums + BASE_AUDIO_N, [](const min_sum &a, const min_sum &b) { return a.sum < b.sum; });
+    printf("[");
     for (auto s : sums) {
-        printf("ID: %d SUM: %d\n", s.id, s.sum);
+        // printf("ID: %d SUM: %d\n", s.id, s.sum);
+        printf("[%d, %d],", s.id + 1, s.sum);
     }
+    printf("]\n");
 
     return 0;
 }
