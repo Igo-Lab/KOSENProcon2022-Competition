@@ -105,8 +105,7 @@ def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[np.i
 
 def send_answer(problem_id: str, answer: set[int]):
     logger.info("Trying to sending the answer.")
-
-    li = [f"{(x-1)%44+1:02}" for x in answer]
+    li = [f"{x:02}" for x in answer]
 
     ad = AnswerData(problem_id=problem_id, answers=li)
 

@@ -248,9 +248,12 @@ class App:
     @classmethod
     def makemask(answer: set[int], mask: npt.NDArray[np.bool_]):
         for num in answer:
+            num = num - 1
             mask[num] = True
-            if num <= 44:
+            if num < 44:
                 mask[num + 44] = True
+            else:
+                mask[num - 44] = True
 
     @classmethod
     def show_result(cls):
