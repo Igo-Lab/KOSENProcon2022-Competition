@@ -22,12 +22,12 @@ constexpr size_t BLOCK_N = 256;
 using comp_pair = std::pair<uint32_t, uint32_t>;
 
 int16_t *srcAudios[BASE_AUDIO_N];  // gpuのメモリポインタ．マルチスレッドで呼び出すときに問題になりそう．
-uint32_t srclens[BASE_AUDIO_N];
+int32_t srclens[BASE_AUDIO_N];
 cudaStream_t streams[BASE_AUDIO_N];
 bool isInit = false;
 bool srcLoaded = false;
 
-__global__ void diffSum(const int16_t *__restrict__ chunk, const int16_t *__restrict__ src, uint32_t *sums, const uint32_t chunkLen, const uint32_t sourceLen) {
+__global__ void diffSum(const int16_t *__restrict__ chunk, const int16_t *__restrict__ src, uint32_t *sums, const int32_t chunkLen, const int32_t sourceLen) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int index = idx + 1;  // 1 start
     if (index >= (chunkLen + sourceLen)) {
@@ -67,8 +67,8 @@ __global__ void printest(int16_t *arr, uint32_t len){
     }
 }
 
-__global__ void argtest(const int16_t *__restrict__ chunk, const int16_t *__restrict__ src, uint32_t *sums, const uint32_t chunkLen, const uint32_t sourceLen){
-    printf("chlen: %u, srclen: %u\n", chunkLen, sourceLen);
+__global__ void argtest(const int16_t *__restrict__ chunk, const int16_t *__restrict__ src, uint32_t *sums, const int32_t chunkLen, const int32_t sourceLen){
+    printf("chlen: %d, srclen: %d\n", chunkLen, sourceLen);
 
     for(auto i = 0;i<10; i++){
         for (auto j= 0;j<10;j++){
@@ -87,7 +87,7 @@ __global__ void argtest(const int16_t *__restrict__ chunk, const int16_t *__rest
 
 //とりあえず何も考えずsrcをコピーして解答領域は都度都度確保することに
 // TODO:動確したら直す
-void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
+void memcpy_src2gpu(const int16_t **srcs, const int32_t *lens) {
     if (!isInit) {
         std::cout << "Didn't be inited. Not processing." << std::endl;
         return;
@@ -106,7 +106,7 @@ void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
 }
 
 // 元読みデータはindex-0スタート．つまり0～87
-void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, uint32_t **result) {
+void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, uint32_t **result) {
     int16_t *chunk_d;
     thrust::device_vector<uint32_t> sum_tmp[BASE_AUDIO_N];
     dim3 block(BLOCK_N);
@@ -162,18 +162,20 @@ void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, 
             sum_tmp[i].end(),
             UINT32_MAX,
             thrust::minimum<uint32_t>());
-        std::cout << "result[" << i << "][1]=" << result[i][1] << std::endl;
-
-        if(i==0){
-            
-        }
 
         //後片付け
         // sum_tmp[i].~device_vector();
     }
+
     cudaDeviceSynchronize();
 
     std::sort((comp_pair *)result, (comp_pair *)result + BASE_AUDIO_N, [](const auto &a, const auto &b) { return a.second < b.second; });
+    
+    for (auto j = 0;j<BASE_AUDIO_N;j++) {
+        // printf("ID: %d SUM: %d\n", s.id, s.sum);
+        printf("[%u, %u],", result[j][0] + 1, result[j][1]);
+    }
+
 
     cudaFree(chunk_d);
 }

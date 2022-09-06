@@ -12,6 +12,7 @@ _INT16_PP = ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags="C")
 _INT16_P = ctypes.POINTER(ctypes.c_int16)
 _UINT32_PP = ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags="C")
 _UINT32_P = ctypes.POINTER(ctypes.c_uint32)
+_INT32_P = ctypes.POINTER(ctypes.c_int32)
 _BOOL_P = ctypes.POINTER(ctypes.c_bool)
 
 c_resolver_dll = np.ctypeslib.load_library("libresolver.so", constant.DLL_DIR)
@@ -19,19 +20,19 @@ c_resolver_dll = np.ctypeslib.load_library("libresolver.so", constant.DLL_DIR)
 # DLLの関数
 c_memcpy_src2gpu = c_resolver_dll.memcpy_src2gpu
 c_memcpy_src2gpu.restype = None
-c_memcpy_src2gpu.argtypes = (_INT16_PP, _UINT32_P)
+c_memcpy_src2gpu.argtypes = (_INT16_PP, _INT32_P)
 
 c_resolver = c_resolver_dll.resolver
 c_resolver.restype = None
-c_resolver.argtypes = (_INT16_P, ctypes.c_uint32, _BOOL_P, _UINT32_PP)
+c_resolver.argtypes = (_INT16_P, ctypes.c_int32, _BOOL_P, _UINT32_PP)
 
 
-def memcpy_src2gpu(srcs: npt.NDArray[np.int16], src_lens: npt.NDArray[np.uint32]):
+def memcpy_src2gpu(srcs: npt.NDArray[np.int16], src_lens: npt.NDArray[np.int32]):
     srcs_pp = (
         srcs.__array_interface__["data"][0] + np.arange(srcs.shape[0]) * srcs.strides[0]
     ).astype(np.uintp)
 
-    c_memcpy_src2gpu(srcs_pp, src_lens.ctypes.data_as(_UINT32_P))
+    c_memcpy_src2gpu(srcs_pp, src_lens.ctypes.data_as(_INT32_P))
     logger.debug("Copying Src data to GPU has been done.")
 
 

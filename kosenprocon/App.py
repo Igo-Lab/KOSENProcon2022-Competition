@@ -17,7 +17,7 @@ from . import libs
 class App:
     # 2D
     compressed_srcs: npt.NDArray[np.int16]
-    compressed_srcs_len: npt.NDArray[np.uint32]
+    compressed_srcs_len: npt.NDArray[np.int32]
     raw_srcs: list[list[np.int16]]
     # 1D
     raw_chunks: list[tuple[int, list[int]]] = []
@@ -155,7 +155,7 @@ class App:
             compedarr.append(rs)
 
         cls.compressed_srcs = np.array(compedarr, dtype=np.int16)
-        cls.compressed_srcs_len = np.array(lenarr, dtype=np.uint32)
+        cls.compressed_srcs_len = np.array(lenarr, dtype=np.int32)
 
         libs.memcpy_src2gpu(cls.compressed_srcs, cls.compressed_srcs_len)
         logger.info("Loading has been done")

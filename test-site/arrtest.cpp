@@ -1,4 +1,3 @@
-
 /******************************************************************************
 
                               Online C++ Compiler.
@@ -7,54 +6,25 @@ Write your code in this editor and press "Run" button to compile and execute it.
 
 *******************************************************************************/
 
-#include <sys/time.h>
-
-#include <algorithm>
 #include <iostream>
-#include <utility>
-#include <vector>
+#include <algorithm>
 
 using namespace std;
-using comb = pair<uint32_t, uint32_t>;
+using comp_pair = std::pair<uint32_t, uint32_t>;
 
-double cpuSecond() {
-    struct timeval tp;
-    gettimeofday(&tp, NULL);
-    return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
+void test(uint32_t **a){
+    std::sort((comp_pair *)a, (comp_pair *)a + 3, [](const auto &a, const auto &b) { return a.second < b.second; });
+    for(auto i = 0;i < 3;i++){
+        printf("%d %d\n",a[i][0],a[i][1]);
+    }
 }
 
-void arrsort(uint32_t **arr, int len) {
-    sort(
-        (comb *)arr,
-        (comb *)arr + len,
-        [](const comb &a, const comb &b) { return a.second < b.second; });
-}
-
-int main() {
-    uint32_t arr[2 << 15][2];
-    for (auto i = 0; i < 2 << 15; i++) {
-        arr[i][0] = i;
-        arr[i][1] = rand();
+int main()
+{
+    uint32_t a[][2] = {{1,2},{2,100},{3,300}};
+    std::sort((comp_pair *)a, (comp_pair *)a + 3, [](const auto &a, const auto &b) { return a.second < b.second; });
+    for(auto i = 0;i < 3;i++){
+        printf("%d %d\n",a[i][0],a[i][1]);
     }
-
-    cout << "go" << endl;
-    double istart = cpuSecond();
-    arrsort((uint32_t **)arr, 2 << 15);
-    printf("%lf\n", cpuSecond() - istart);
-
-    vector<vector<uint32_t>> arr2(2 << 15, vector<uint32_t>(2));
-    for (auto i = 0; i < 2 << 15; i++) {
-        arr[i][0] = i;
-        arr[i][1] = rand();
-    }
-    istart = cpuSecond();
-    sort(
-        arr2.begin(),
-        arr2.end(),
-        [](const auto &a, const auto &b) { return a[1] < b[1]; });
-    printf("%lf\n", cpuSecond() - istart);
-
-    cout << "Hello World";
-
     return 0;
 }

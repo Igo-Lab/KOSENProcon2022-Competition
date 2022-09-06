@@ -74,13 +74,17 @@ __global__ void diffSum(const AUDIO_TYPE *__restrict__ problem, const AUDIO_TYPE
 //勝手にリサイズするように要リファクタ
 template <typename T>
 void array_compactor(std::vector<T> &in, thrust::host_vector<T> &out, size_t times) {
-    for (auto j = 0, bidx = 0; j < in.size(); j += SKIP_N, bidx++) {
-        int sum = 0;
-        int k = 0;
-        for (; k < SKIP_N && j + k < in.size(); k++) {
-            sum += in[j + k];
-        }
-        out[bidx] = sum / k;  //平均とる
+    // for (auto j = 0, bidx = 0; j < in.size(); j += SKIP_N, bidx++) {
+    //     int sum = 0;
+    //     int k = 0;
+    //     for (; k < SKIP_N && j + k < in.size(); k++) {
+    //         sum += in[j + k];
+    //     }
+    //     out[bidx] = sum / k;  //平均とる
+    // }
+
+    for(auto i = 0;i < std::ceil((float)in.size()/times);i++){
+        out[i] = in[i*times];
     }
 }
 
