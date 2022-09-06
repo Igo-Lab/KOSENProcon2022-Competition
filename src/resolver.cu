@@ -17,7 +17,7 @@
         }                                                                                                                     \
     } while (0)
 
-constexpr size_t BASE_AUDIO_N = 1;
+constexpr size_t BASE_AUDIO_N = 88;
 constexpr size_t BLOCK_N = 256;
 using comp_pair = std::pair<uint32_t, uint32_t>;
 
@@ -72,14 +72,14 @@ __global__ void argtest(const int16_t *__restrict__ chunk, const int16_t *__rest
 
     for(auto i = 0;i<10; i++){
         for (auto j= 0;j<10;j++){
-            printf("%d", chunk[i*10+j]);
+            printf("%d ", chunk[i*10+j]);
         }
         printf("\n");
     }
-
+    printf("\n");
     for(auto i = 0;i<10; i++){
         for (auto j= 0;j<10;j++){
-            printf("%d", src[i*10+j]);
+            printf("%d ", src[i*10+j]);
         }
         printf("\n");
     }
@@ -132,11 +132,15 @@ void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, 
             continue;
         }
 
-        if(i == 0){
-            argtest<<<1, 1>>>(chunk_d, srcAudios[i], thrust::raw_pointer_cast(sum_tmp[0].data()), chunk_len, srclens[0]);
-        }
+        // if(i == 0){
+        //     printf("chlen: %u srclen: %u", chunk_len, srclens[0]);
+        //     argtest<<<1, 1>>>(chunk_d, srcAudios[i], thrust::raw_pointer_cast(sum_tmp[0].data()), chunk_len, srclens[0]);
+        // }
 
+        
         dim3 grid(((chunk_len + srclens[i] - 2) + block.x - 1) / block.x);
+        printf("srcAudio ID: %d, Block: %d, Grid: %d\n", i+1, block.x, grid.x);
+        printf("sums_d size: %d, %d\n", sum_tmp[i].size(), grid.x*block.x);
         diffSum<<<grid, block, 0, streams[i]>>>(chunk_d, srcAudios[i], thrust::raw_pointer_cast(sum_tmp[i].data()), chunk_len, srclens[i]);
     }
 
@@ -159,6 +163,10 @@ void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, 
             UINT32_MAX,
             thrust::minimum<uint32_t>());
         std::cout << "result[" << i << "][1]=" << result[i][1] << std::endl;
+
+        if(i==0){
+            
+        }
 
         //後片付け
         // sum_tmp[i].~device_vector();

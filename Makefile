@@ -1,7 +1,7 @@
 CXX=g++
 CXXFLAGS=-std=c++14 -fPIC
-NVCC=nvcc
-NVCCFLAGS= -arch=sm_75 --std c++14 --shared -Xcompiler -fPIC
+NVCC=/usr/local/cuda/bin/nvcc
+NVCCFLAGS= -arch=sm_53 --std c++14 --shared -Xcompiler -fPIC
 SRCDIR=src
 SRCS=$(shell find $(SRCDIR) -name '*.cu' -o -name '*.cpp')
 OBJDIR=objs

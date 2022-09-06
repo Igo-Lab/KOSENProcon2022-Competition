@@ -97,7 +97,7 @@ class App:
                             cls.compressing_rate,
                         )
 
-                        print(cls.compressed_chunk)
+                        print("chunk ", cls.compressed_chunk[:100])
                         sums = cls.get_sums(
                             cls.compressed_chunk,
                             cls.srcs_mask,
@@ -145,12 +145,12 @@ class App:
             rs = cls.compress(src, cls.compressing_rate)
 
             if first:
-                print(rs)
+                print(rs[:100])
                 first = False
 
             lenarr.append(len(rs))  # 元の長さを保存
             rs.resize(
-                math.floor(maxlen / cls.compressing_rate), refcheck=False
+                math.ceil(maxlen / cls.compressing_rate), refcheck=False
             )  # 一番大きい長さに統一
             compedarr.append(rs)
 

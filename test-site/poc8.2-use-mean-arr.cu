@@ -15,6 +15,7 @@
 #include <new>
 #include <numeric>
 #include <vector>
+#include <cmath>
 
 #include "AudioFile.h"
 
@@ -92,9 +93,9 @@ int main() {
     min_sum sums[BASE_AUDIO_N];
     double iStart = cpuSecond();
     // wave読み込み
-    AudioFile<AUDIO_TYPE> loadtmp("samples/original/problem4.wav");
+    AudioFile<AUDIO_TYPE> loadtmp("samples/sample_Q_202205/sample_Q_E03/problem3.wav");
     loadtmp.printSummary();
-    const int problem_length = loadtmp.getNumSamplesPerChannel() / SKIP_N + 1;
+    const int problem_length = std::ceil((float)loadtmp.getNumSamplesPerChannel() / SKIP_N);
     thrust::host_vector<AUDIO_TYPE> problem_wave(problem_length);
     array_compactor(loadtmp.samples[0], problem_wave, SKIP_N);
 
@@ -106,7 +107,7 @@ int main() {
         snprintf(buf, sizeof(buf), "samples/JKspeech/%d.wav", i + 1);
 
         loadtmp.load(buf);
-        baseAudio_length[i] = loadtmp.getNumSamplesPerChannel() / SKIP_N + 1;
+        baseAudio_length[i] = std::ceil((float)loadtmp.getNumSamplesPerChannel() / SKIP_N);
         baseAudios[i].resize(baseAudio_length[i]);
 
         array_compactor(loadtmp.samples[0], baseAudios[i], SKIP_N);
