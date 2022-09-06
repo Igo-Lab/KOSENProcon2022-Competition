@@ -1,5 +1,6 @@
 import configparser
 
+IS_LOCAL=False
 SRC_SAMPLE_RATE = 48000
 COMPRESSING_RATE = 16
 BASE_AUDIO_DIR = r"samples/JKspeech"

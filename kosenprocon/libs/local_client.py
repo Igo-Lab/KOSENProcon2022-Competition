@@ -49,26 +49,24 @@ class answer_verified_data(BaseModel):
 
 def get_match() -> MatchData:
     logger.info("Trying to get a match.")
-    r = requests.get(
-        urllib.parse.urljoin(constant.API_URL, "/match"),
-        headers=REQ_HEADER,
-        timeout=constant.TIMEOUT,
-        proxies=PROXY,
-    )
-    r.raise_for_status()
-    return MatchData.parse_raw(r.text)
+
+    print("Input Match Data:")
+    problem_num: int = int(input("Problems num: "))
+
+    return MatchData(problems=problem_num, bonus_factor=[], penalty=0)
 
 
 def get_problem() -> ProblemData:
     logger.info("Trying to get a problem.")
-    r = requests.get(
-        urllib.parse.urljoin(constant.API_URL, "/problem"),
-        headers=REQ_HEADER,
-        timeout=constant.TIMEOUT,
-        proxies=PROXY,
+
+    print("Input Problem Data:")
+    problem_id: str = input("Problem ID: ")
+    chunks_num: int = int(input("Chunks Num: "))
+    overlap: int = int(input("Overlap(data) Num:"))
+
+    return ProblemData(
+        id=problem_id, chunks=chunks_num, starts_at=0, time_limit=0, data=overlap
     )
-    r.raise_for_status()
-    return ProblemData.parse_raw(r.text)
 
 
 # already: 事前に持っているchunksの番号とデータ内容のlist。
@@ -76,31 +74,14 @@ def get_problem() -> ProblemData:
 
 
 def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[np.int16]]:
-    r = requests.post(
-        urllib.parse.urljoin(constant.API_URL, "/problem/chunks"),
-        params={"n": len(already) + 1},
-        headers=REQ_HEADER,
-        timeout=constant.TIMEOUT,
-        proxies=PROXY,
-    )
-    r.raise_for_status()
-    chds = ChunkPlaceData.parse_raw(r.text)
-
-    new_no = int(chds.chunks[-1].split("_")[0][-1])
-    logger.info(f"Trying to get chunk={new_no}")
-    r = requests.get(
-        urllib.parse.urljoin(constant.API_URL, f"/problem/chunks/{chds.chunks[-1]}"),
-        headers=REQ_HEADER,
-        timeout=constant.TIMEOUT,
-        proxies=PROXY,
-    )
-    r.raise_for_status()
+    path = input("Please input a chunk path.")
+    order: int = int(input("Please input the order of this chunk."))
 
     wav: list[np.int16]
-    with wave.open(io.BytesIO(r.content)) as wr:
+    with wave.open(path) as wr:
         wav = np.frombuffer(wr.readframes(-1), dtype=np.int16).tolist()
 
-    return (new_no, wav)
+    return (order, wav)
 
 
 def send_answer(problem_id: str, answer: set[int]):
@@ -109,13 +90,5 @@ def send_answer(problem_id: str, answer: set[int]):
 
     ad = AnswerData(problem_id=problem_id, answers=li)
 
-    r = requests.post(
-        urllib.parse.urljoin(constant.API_URL, "/problem"),
-        headers=REQ_HEADER,
-        timeout=constant.TIMEOUT,
-        proxies=PROXY,
-        data=ad.json(),
-    )
-    r.raise_for_status()
-
     logger.info(f"Sending complete. problem-id={problem_id} answer={answer}")
+    input("Please press enter key...")
