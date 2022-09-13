@@ -46,28 +46,8 @@ class StubHttpRequestHandler(BaseHTTPRequestHandler):
         self.send_response(json.dump(res))
 
 
-    def POST_(self):
-        enc = sys.getfilesystemencoding()
-
-        length = self.headers.get('content-length')
-        nbytes = int(length)
-        rawPostData = self.rfile.read(nbytes)
-        decodedPostData = rawPostData.decode(enc)
-        postData = urllib.parse.parse_qs(decodedPostData)
-
-        pan = postData["PAN"]
-
-        resultData = []
-        for p in pan:
-            resultData.append(data[p])
-
-        encoded = '\n'.join(resultData).encode(enc)
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-type", "text/plain; charset=%s" % enc)
-        self.send_header("Content-Length", str(len(encoded)))
-        self.end_headers()
-
-        self.wfile.write(encoded)
+    def POST_problems(self):
+        print("")
 
 handler = StubHttpRequestHandler
 httpd = HTTPServer(('',PORT),handler)
