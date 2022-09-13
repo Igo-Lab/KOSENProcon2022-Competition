@@ -5,11 +5,12 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
 from tokenize import String, Token
-import call_test #仮でimportしている
 import numpy as np
 from functools import partial
-import requests
 import os
+
+import call_test #仮でimportしている
+import post_client
 
 if __name__ == '__main__':
 
