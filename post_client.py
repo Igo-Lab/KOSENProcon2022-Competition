@@ -4,6 +4,11 @@ import json
 from tkinter.scrolledtext import ScrolledText
 import main_GUI
 
+#パラメータの定義
+params={'procon-token':main_GUI.TOKEN}
+P_ID = []
+answers = []
+
 #分割数送信
 def POSTrequest_problem(how):
     ge=int(how.get())
@@ -17,7 +22,7 @@ def POSTrequest_problem(how):
 
     #wavの取得
 
-    suu=int(ge)
+    suu=ge
     #繰り返しのカウント変数
     i=0
     #jsonの要素を受け取るリスト
@@ -32,22 +37,29 @@ def POSTrequest_problem(how):
     while  i<suu :
         num.append(oput['chunks'][i])
         curl.append('https://procon33-practice.kosen.work/problem/chunks'+str(num[i]))
-        tok={'token':main_GUI.TOKEN}
-        wsyu.append(requests.get(curl[i],tok))
+        wsyu.append(requests.get(curl[i],params=params))
         print(num[i])
         i=i+1
 
 
 
 #ステータスコード確認
-def syutoku():
+def syutoku(P_ID):
     surl='https://procon33-practice.kosen.work/problem'
-    params={'token':main_GUI.TOKEN}
     res=requests.get(surl,params)
     #nin.delete(0, tk.END)
     print(res.status_code)
-    #クエリパラメータ的な
+    print(res.json())
+    P_ID = json.loads(res.json())
 
 #文字数制限
 def limit_char(st_lim):
     return len(st_lim) <= 1
+
+#回答を送信する
+def POSTrequest_answer(P_ID,answers):
+    hed = {'Content-Type':'application/json'}
+    payload = {'problem_id':P_ID,'answers':answers}
+    res = requests.post(url='https://procon33-practice.kosen.work/problem',headers=hed,params=params,data=payload)
+    print(res.status_code)
+    print(res.json())
