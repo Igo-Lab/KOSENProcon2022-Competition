@@ -29,7 +29,7 @@ def main():
         print(f"sum={np.sum(np.abs(problem_data))}")
 
     timeline = np.arange(0, frame_size)
-    for i in range(1, 2 + 1):
+    for i in range(1, 88 + 1):
         with wave.open(rf"{src_path}\{i+44}.wav") as wr:
             is_first = True
             raw_data_offset = 0
@@ -37,7 +37,7 @@ def main():
             data = np.frombuffer(data, dtype=np.int16)
             print(f"open: {i+44}.wav")
 
-            for j in range(1, problem_data.__len__() + data.__len__(), 44):
+            for j in range(1, problem_data.__len__() + data.__len__(), 22):
                 clip_starti = max(0, j - data.__len__())
                 clip_endi = min(j, problem_data.__len__())
                 data_starti = max(data.__len__() - j, 0)
