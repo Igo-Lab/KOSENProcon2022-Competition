@@ -18,7 +18,7 @@
 
 #include "AudioFile.h"
 
-#define BASE_AUDIO_N (3)
+#define BASE_AUDIO_N (88)
 #define SKIP_N (22)
 #define MAX_LENGTH (7358334)
 
@@ -129,11 +129,8 @@ int main() {
         dim3 grid(((problem_length + baseAudio_length[i] - 2) / SKIP_N + block.x - 1) / block.x);
         printf("baseAudio ID: %d, Block: %d, Grid: %d\n", i + 1, block.x, grid.x);
         printf("sums_d size: %d, %d\n", (problem_length + baseAudio_length[i] - 2) / SKIP_N, grid.x * block.x);
-        // diffSum<<<grid, block, 0, streams[i]>>>(thrust::raw_pointer_cast(problem_d.data()), thrust::raw_pointer_cast(baseAudios_d[i].data()), thrust::raw_pointer_cast(sum_tmp[i].data()), problem_length, baseAudio_length[i]);
+        diffSum<<<grid, block, 0, streams[i]>>>(thrust::raw_pointer_cast(problem_d.data()), thrust::raw_pointer_cast(baseAudios_d[i].data()), thrust::raw_pointer_cast(sum_tmp[i].data()), problem_length, baseAudio_length[i]);
         // TODO:
-    }
-
-    for (auto i = 0; i <) {
     }
 
     cudaThreadSynchronize();
