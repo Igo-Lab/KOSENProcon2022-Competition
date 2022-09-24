@@ -18,9 +18,12 @@
 
 #include "AudioFile.h"
 
-#define BASE_AUDIO_N (88)
-#define SKIP_N (22)
-#define MAX_LENGTH (7358334)
+constexpr size_t BASE_AUDIO_N = 88;
+constexpr size_t SKIP_N = 22;
+constexpr size_t MAX_LENGTH = 7358334;
+
+constexpr size_t sN = 8192;  // because 16kb need to make occupancy 100%
+constexpr size_t blockN = 512;
 
 typedef struct {
     unsigned int sum;
@@ -33,46 +36,43 @@ double cpuSecond() {
     return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
-template <typename T_in, typename T_out>
-struct AbsDiff {
-    __host__ __device__ constexpr T_out operator()(const T_in &a, const T_in &b) const {
-        return abs(a - b);
-    }
-};
-
-template <typename T_in, typename T_out>
-struct AbsPlus {
-    __host__ __device__ constexpr T_out operator()(const T_in &a, const T_in &b) const {
-        return a + abs(b);
-    }
-};
-
-__global__ void diffSum(short *problem, short *src, unsigned int *sums, const int problemLen, const int sourceLen) {
+__global__ void diffSum(const short *problem, const short *src, unsigned int *sums, const int problemLen, const int sourceLen) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int index = idx * SKIP_N + 1;  // 1 start
+    __shared__ short tmp_problem[sN];
+
     if (index >= (problemLen + sourceLen)) {
         return;
     }
+
     int clip_starti = max(0, index - sourceLen);
     int clip_endi = min(index, problemLen);
     int src_starti = max(sourceLen - index, 0);
     int src_endi = min(sourceLen, sourceLen + problemLen - index);
-
     unsigned int sum = 0;
-    for (auto i = clip_starti, j = src_starti; i < clip_endi; i++, j++) {
-        sum += abs(problem[i] - src[j]);
+
+    // s_r:shared memory range
+    // TODO:problemを4の倍数に成形, problemをsNの倍数に成形
+    for (auto i = 0; i < (problemLen + sN - 1) / sN; i++) {
+        for (auto s_r = idx; s_r < sN; s_r += blockN) {
+            tmp_problem[s_r] = problem[s_r + i * sN];
+        }
+        __syncthreads();
+
+        // shared memory用バリア: jがi(sN個のsharedのインデックス)以上の範囲にありかつ，(i+1)*sN未満のとき加算
+        for (auto j = 0; i * sN <= j && (i + 1) * sN > j && j < clip_starti; j++) {
+            sum += abs(tmp_problem[j]);
+        }
+
+        for (auto j = clip_starti, k = src_starti; i * sN <= j && (i + 1) * sN > j && j < clip_endi; j++, k++) {
+            sum += abs(problem[j] - src[k]);
+        }
+
+        //残りの加算
+        for (auto j = clip_endi; i * sN <= j && (i + 1) * sN > j && j < problemLen; j++) {
+            sum += abs(problem[j]);
+        }
     }
-
-    //残りの加算
-    // for (auto i = 0; i < clip_starti; i++) {
-    //     sum += abs(problem[i]);
-    // }
-    sum += thrust::reduce(thrust::cuda::par, problem, problem + clip_starti, 0, AbsPlus<int, unsigned int>());
-
-    // for (auto i = clip_endi; i < problemLen; i++) {
-    //     sum += abs(problem[i]);
-    // }
-    sum += thrust::reduce(thrust::cuda::par, problem + clip_endi, problem + problemLen, 0, AbsPlus<int, unsigned int>());
 
     sums[idx] = sum;
 }
@@ -117,7 +117,7 @@ int main() {
     }
     cudaThreadSynchronize();
 
-    dim3 block(256);
+    dim3 block(blockN);
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
         dim3 grid(((problem_length + baseAudio_length[i] - 2) / SKIP_N + block.x - 1) / block.x);
         printf("baseAudio ID: %d, Block: %d, Grid: %d\n", i + 1, block.x, grid.x);

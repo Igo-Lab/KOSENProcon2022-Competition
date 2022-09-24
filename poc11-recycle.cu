@@ -33,20 +33,6 @@ double cpuSecond() {
     return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
-template <typename T_in, typename T_out>
-struct AbsDiff {
-    __host__ __device__ constexpr T_out operator()(const T_in &a, const T_in &b) const {
-        return abs(a - b);
-    }
-};
-
-template <typename T_in, typename T_out>
-struct AbsPlus {
-    __host__ __device__ constexpr T_out operator()(const T_in &a, const T_in &b) const {
-        return a + abs(b);
-    }
-};
-
 __global__ void diffSum(short *problem, short *src, unsigned int *sums, const int problemLen, const int sourceLen) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int index = idx * SKIP_N + 1;  // 1 start
@@ -64,15 +50,13 @@ __global__ void diffSum(short *problem, short *src, unsigned int *sums, const in
     }
 
     //残りの加算
-    // for (auto i = 0; i < clip_starti; i++) {
-    //     sum += abs(problem[i]);
-    // }
-    sum += thrust::reduce(thrust::cuda::par, problem, problem + clip_starti, 0, AbsPlus<int, unsigned int>());
+    for (auto i = 0; i < clip_starti; i++) {
+        sum += abs(problem[i]);
+    }
 
-    // for (auto i = clip_endi; i < problemLen; i++) {
-    //     sum += abs(problem[i]);
-    // }
-    sum += thrust::reduce(thrust::cuda::par, problem + clip_endi, problem + problemLen, 0, AbsPlus<int, unsigned int>());
+    for (auto i = clip_endi; i < problemLen; i++) {
+        sum += abs(problem[i]);
+    }
 
     sums[idx] = sum;
 }
