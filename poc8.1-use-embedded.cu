@@ -35,7 +35,7 @@ double cpuSecond() {
     return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
-__global__ void diffSum(AUDIO_TYPE *problem, AUDIO_TYPE *src, unsigned int *sums, const int problemLen, const int sourceLen) {
+__global__ void diffSum(const AUDIO_TYPE *__restrict__ problem, const AUDIO_TYPE *__restrict__ src, unsigned int *sums, const int problemLen, const int sourceLen) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int index = idx * SKIP_N + 1;  // 1 start
     if (index >= (problemLen + sourceLen)) {
@@ -48,7 +48,8 @@ __global__ void diffSum(AUDIO_TYPE *problem, AUDIO_TYPE *src, unsigned int *sums
 
     unsigned int sum = 0;
     for (auto i = clip_starti, j = src_starti; i < clip_endi; i++, j++) {
-        sum += abs(problem[i] - src[j]);
+        // sum += abs(problem[i] - src[j]);
+        sum = __sad(problem[i], src[j], sum);
     }
 
     //残りの加算
