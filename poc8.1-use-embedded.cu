@@ -47,16 +47,21 @@ __global__ void diffSum(const AUDIO_TYPE *__restrict__ problem, const AUDIO_TYPE
     int src_endi = min(sourceLen, sourceLen + problemLen - index);
 
     unsigned int sum = 0;
-    for (auto i = clip_starti, j = src_starti; i < clip_endi; i++, j++) {
-        // sum += abs(problem[i] - src[j]);
-        sum = __sad(problem[i], src[j], sum);
-    }
 
-    //残りの加算
+    //生problemの前加算
+#pragma unroll 8
     for (auto i = 0; i < clip_starti; i++) {
         sum += abs(problem[i]);
     }
 
+#pragma unroll 8
+    for (auto i = clip_starti, j = src_starti; i < clip_endi; i++, j++) {
+        sum += abs(problem[i] - src[j]);
+        // sum = __sad(problem[i], src[j], sum);
+    }
+
+    //生problemの後加算
+#pragma unroll 8
     for (auto i = clip_endi; i < problemLen; i++) {
         sum += abs(problem[i]);
     }
