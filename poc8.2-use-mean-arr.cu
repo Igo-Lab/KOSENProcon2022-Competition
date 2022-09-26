@@ -19,10 +19,10 @@
 #include "AudioFile.h"
 
 #define BASE_AUDIO_N (1)
-#define SKIP_N (22)
+#define SKIP_N (16)
 #define MAX_LENGTH (7358334)
 
-using AUDIO_TYPE = int32_t;
+using AUDIO_TYPE = short;
 
 typedef struct {
     unsigned int sum;
@@ -35,9 +35,9 @@ double cpuSecond() {
     return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
-__global__ void diffSum(const AUDIO_TYPE *problem, const AUDIO_TYPE *src, unsigned int *sums, const int problemLen, const int sourceLen) {
+__global__ void diffSum(const AUDIO_TYPE *__restrict__ problem, const AUDIO_TYPE *__restrict__ src, unsigned int *sums, const int problemLen, const int sourceLen) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int index = idx * SKIP_N + 1;  // 1 start
+    int index = idx + 1;  // 1 start
     if (index >= (problemLen + sourceLen)) {
         return;
     }
@@ -47,16 +47,22 @@ __global__ void diffSum(const AUDIO_TYPE *problem, const AUDIO_TYPE *src, unsign
     int src_endi = min(sourceLen, sourceLen + problemLen - index);
 
     unsigned int sum = 0;
-    for (int i = clip_starti, j = src_starti; i < clip_endi; i++, j++) {
-        sum += abs(problem[i] - src[j]);
-    }
 
-    //残りの加算
-    for (int i = 0; i < clip_starti; i++) {
+    //生problemの前加算
+#pragma unroll 8
+    for (auto i = 0; i < clip_starti; i++) {
         sum += abs(problem[i]);
     }
 
-    for (int i = clip_endi; i < problemLen; i++) {
+#pragma unroll 8
+    for (auto i = clip_starti, j = src_starti; i < clip_endi; i++, j++) {
+        sum += abs(problem[i] - src[j]);
+        // sum = __sad(problem[i], src[j], sum);
+    }
+
+    //生problemの後加算
+#pragma unroll 8
+    for (auto i = clip_endi; i < problemLen; i++) {
         sum += abs(problem[i]);
     }
 
@@ -73,15 +79,25 @@ int main() {
     double iStart = cpuSecond();
     // wave読み込み
     AudioFile<AUDIO_TYPE> problem_wave("samples/original/problem4.wav");
-    AudioFile<AUDIO_TYPE> baseAudios[BASE_AUDIO_N];
+    AudioFile<AUDIO_TYPE> loadtmp;
+    thrust::host_vector<AUDIO_TYPE> baseAudios[BASE_AUDIO_N];
     int baseAudio_length[BASE_AUDIO_N];
 
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
         char buf[1000];
         snprintf(buf, sizeof(buf), "samples/JKspeech/%d.wav", i + 1);
 
-        baseAudios[i].load(buf);
-        baseAudio_length[i] = baseAudios[i].getNumSamplesPerChannel();
+        loadtmp.load(buf);
+        baseAudio_length[i] = loadtmp.getNumSamplesPerChannel() / SKIP_N;
+        baseAudios[i].reserve(baseAudio_length[i]);
+
+        for (auto j = 0, bidx = 0; j < baseAudio_length[i]; j += SKIP_N, bidx++) {
+            int sum = 0;
+            for (auto k = 0; k < SKIP_N; k++) {
+                sum += loadtmp.samples[0][j + k];
+            }
+            baseAudios[i][bidx] = sum / SKIP_N;
+        }
     }
     printf("%f[s] needed to read problems and baseAudios\n", cpuSecond() - iStart);
 
@@ -99,15 +115,15 @@ int main() {
         new (sum_tmp + i) thrust::device_vector<unsigned int>((problem_length + baseAudio_length[i] - 2) / SKIP_N);
         //転送
         new (baseAudios_d + i) thrust::device_vector<AUDIO_TYPE>(baseAudio_length[i]);
-        cudaMemcpyAsync(thrust::raw_pointer_cast(baseAudios_d[i].data()), baseAudios[i].samples[0].data(), baseAudios[i].samples[0].size(), cudaMemcpyHostToDevice, streams[i]);
+        cudaMemcpyAsync(thrust::raw_pointer_cast(baseAudios_d[i].data()), baseAudios[i].data(), baseAudio_length[i], cudaMemcpyHostToDevice, streams[i]);
     }
     cudaThreadSynchronize();
 
     dim3 block(256);
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
-        dim3 grid(((problem_length + baseAudio_length[i] - 2) / SKIP_N + block.x - 1) / block.x);
+        dim3 grid(((problem_length + baseAudio_length[i] - 2) + block.x - 1) / block.x);
         printf("baseAudio ID: %d, Block: %d, Grid: %d\n", i + 1, block.x, grid.x);
-        printf("sums_d size: %d, %d\n", (problem_length + baseAudio_length[i] - 2) / SKIP_N, grid.x * block.x);
+        printf("sums_d size: %d, %d\n", (problem_length + baseAudio_length[i] - 2), grid.x * block.x);
         diffSum<<<grid, block, 0, streams[i]>>>(thrust::raw_pointer_cast(problem_d.data()), thrust::raw_pointer_cast(baseAudios_d[i].data()), thrust::raw_pointer_cast(sum_tmp[i].data()), problem_length, baseAudio_length[i]);
     }
 
