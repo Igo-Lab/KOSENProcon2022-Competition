@@ -70,6 +70,7 @@ __global__ void diffSum(const AUDIO_TYPE *__restrict__ problem, const AUDIO_TYPE
 }
 
 //事前にresizeされていることが条件
+//勝手にリサイズするように要リファクタ
 template <typename T>
 void array_compactor(std::vector<T> &in, thrust::host_vector<T> &out, size_t times) {
     for (auto j = 0, bidx = 0; j < in.size(); j += SKIP_N, bidx++) {
@@ -78,7 +79,7 @@ void array_compactor(std::vector<T> &in, thrust::host_vector<T> &out, size_t tim
         for (; k < SKIP_N && j + k < in.size(); k++) {
             sum += in[j + k];
         }
-        out[bidx] = sum / (k + 1);
+        out[bidx] = sum / k;  //平均とる
     }
 }
 
@@ -93,7 +94,7 @@ int main() {
     // wave読み込み
     AudioFile<AUDIO_TYPE> loadtmp("samples/original/problem4.wav");
     loadtmp.printSummary();
-    const int problem_length = loadtmp.getNumSamplesPerChannel() / SKIP_N;
+    const int problem_length = loadtmp.getNumSamplesPerChannel() / SKIP_N + 1;
     thrust::host_vector<AUDIO_TYPE> problem_wave(problem_length);
     array_compactor(loadtmp.samples[0], problem_wave, SKIP_N);
 
@@ -105,7 +106,7 @@ int main() {
         snprintf(buf, sizeof(buf), "samples/JKspeech/%d.wav", i + 1);
 
         loadtmp.load(buf);
-        baseAudio_length[i] = loadtmp.getNumSamplesPerChannel() / SKIP_N;
+        baseAudio_length[i] = loadtmp.getNumSamplesPerChannel() / SKIP_N + 1;
         baseAudios[i].resize(baseAudio_length[i]);
 
         array_compactor(loadtmp.samples[0], baseAudios[i], SKIP_N);
