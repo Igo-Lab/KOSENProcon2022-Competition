@@ -69,6 +69,18 @@ __global__ void diffSum(const AUDIO_TYPE *__restrict__ problem, const AUDIO_TYPE
     sums[idx] = sum;
 }
 
+//事前にresizeされていることが条件
+template <typename T>
+void array_compactor(std::vector<T> &in, thrust::host_vector<T> &out, size_t times) {
+    for (auto j = 0, bidx = 0; j < in.size(); j += SKIP_N, bidx++) {
+        int sum = 0;
+        for (auto k = 0; k < SKIP_N; k++) {
+            sum += in[j + k];
+        }
+        out[bidx] = sum / SKIP_N;
+    }
+}
+
 int main() {
     cudaStream_t streams[BASE_AUDIO_N];
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
@@ -78,8 +90,12 @@ int main() {
     min_sum sums[BASE_AUDIO_N];
     double iStart = cpuSecond();
     // wave読み込み
-    AudioFile<AUDIO_TYPE> problem_wave("samples/original/problem4.wav");
-    AudioFile<AUDIO_TYPE> loadtmp;
+    AudioFile<AUDIO_TYPE> loadtmp("samples/original/problem4.wav");
+    loadtmp.printSummary();
+    const int problem_length = loadtmp.getNumSamplesPerChannel() / SKIP_N;
+    thrust::host_vector<AUDIO_TYPE> problem_wave(problem_length);
+    array_compactor(loadtmp.samples[0], problem_wave, SKIP_N);
+
     thrust::host_vector<AUDIO_TYPE> baseAudios[BASE_AUDIO_N];
     int baseAudio_length[BASE_AUDIO_N];
 
@@ -89,22 +105,13 @@ int main() {
 
         loadtmp.load(buf);
         baseAudio_length[i] = loadtmp.getNumSamplesPerChannel() / SKIP_N;
-        baseAudios[i].reserve(baseAudio_length[i]);
+        baseAudios[i].resize(baseAudio_length[i]);
 
-        for (auto j = 0, bidx = 0; j < baseAudio_length[i]; j += SKIP_N, bidx++) {
-            int sum = 0;
-            for (auto k = 0; k < SKIP_N; k++) {
-                sum += loadtmp.samples[0][j + k];
-            }
-            baseAudios[i][bidx] = sum / SKIP_N;
-        }
+        array_compactor(loadtmp.samples[0], baseAudios[i], SKIP_N);
     }
     printf("%f[s] needed to read problems and baseAudios\n", cpuSecond() - iStart);
 
-    problem_wave.printSummary();
-
     // デバイス（GPU）側メモリに領域を確保
-    int problem_length = problem_wave.getNumSamplesPerChannel();
     thrust::device_vector<AUDIO_TYPE> problem_d(problem_length);
     thrust::device_vector<AUDIO_TYPE> baseAudios_d[BASE_AUDIO_N];
     thrust::device_vector<unsigned int> sum_tmp[BASE_AUDIO_N];
