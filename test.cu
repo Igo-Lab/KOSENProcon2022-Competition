@@ -1,10 +1,15 @@
 #define CUB_STDERR
 #include <stdio.h>
+#include <sys/time.h>
+#include <thrust/device_vector.h>
+#include <thrust/functional.h>
+#include <thrust/generate.h>
+#include <thrust/host_vector.h>
+#include <thrust/random.h>
+#include <thrust/reduce.h>
 
 #include <cub/device/device_reduce.cuh>
 #include <cub/util_allocator.cuh>
-
-#include "../../test/test_util.h"
 using namespace cub;
 //---------------------------------------------------------------------
 // Globals, constants and typedefs
@@ -21,7 +26,7 @@ void Initialize(
         h_in[i] = i;
     if (g_verbose) {
         printf("Input:\n");
-        DisplayResults(h_in, num_items);
+        // DisplayResults(h_in, num_items);
         printf("\n\n");
     }
 }
@@ -36,11 +41,17 @@ void Solve(
             h_reference += h_in[i];
     }
 }
+
+double cpuSecond() {
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
+}
 //---------------------------------------------------------------------
 // Main
 //---------------------------------------------------------------------
 int main(int argc, char **argv) {
-    int num_items = 1 << 16;
+    int num_items = 2 << 16;
     // Initialize command line
     // CommandLineArgs args(argc, argv);
     // g_verbose = args.CheckCmdLineFlag("v");
@@ -86,6 +97,10 @@ int main(int argc, char **argv) {
     // int compare = CompareDeviceResults(&h_reference, d_out, 1, g_verbose, g_verbose);
     // printf("\t%s", compare ? "FAIL" : "PASS");
     // AssertEquals(0, compare);
+
+    double istart = cpuSecond();
+    int sum = thrust::reduce(d_in, d_in + (2 << 16));
+    printf("thrust: %lf\n", cpuSecond() - istart);
     // Cleanup
     if (h_in) delete[] h_in;
     if (d_in) CubDebugExit(g_allocator.DeviceFree(d_in));
