@@ -35,13 +35,13 @@ def main():
         print(f"sum={np.sum(np.abs(problem_data))}")
 
     timeline = np.arange(0, frame_size)
-    for i in range(1, 1 + 1):
+    for i in range(1, 88 + 1):
         with wave.open(rf"{src_path}\{i}.wav") as wr:
             is_first = True
             raw_data_offset = 0
             data = wr.readframes(-1)
             data = np.frombuffer(data, dtype=np.int16)
-            print(f"open: {i+44}.wav")
+            print(f"open: {i}.wav")
 
             mean_data: np.ndarray = []
             for j in range(0, len(data), SKIP_N):
@@ -78,7 +78,7 @@ def main():
                         raw_data_offset = j
 
             print(f"similarity: {similarity} offset:{raw_data_offset}")
-            similarity_list.append((i, int(similarity / 4294967295 * 65535)))
+            similarity_list.append((i, similarity))
 
     similarity_list.sort(key=lambda x: x[1])
     for e in similarity_list:
