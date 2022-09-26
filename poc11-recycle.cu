@@ -18,9 +18,11 @@
 
 #include "AudioFile.h"
 
-#define BASE_AUDIO_N (88)
+#define BASE_AUDIO_N (1)
 #define SKIP_N (22)
 #define MAX_LENGTH (7358334)
+
+using AUDIO_TYPE = short;
 
 typedef struct {
     unsigned int sum;
@@ -33,7 +35,7 @@ double cpuSecond() {
     return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
-__global__ void diffSum(short *problem, short *src, unsigned int *sums, const int problemLen, const int sourceLen) {
+__global__ void diffSum(const AUDIO_TYPE *__restrict__ problem, const AUDIO_TYPE *__restrict__ src, unsigned int *sums, const int problemLen, const int sourceLen) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int index = idx * SKIP_N + 1;  // 1 start
     if (index >= (problemLen + sourceLen)) {
@@ -45,15 +47,21 @@ __global__ void diffSum(short *problem, short *src, unsigned int *sums, const in
     int src_endi = min(sourceLen, sourceLen + problemLen - index);
 
     unsigned int sum = 0;
-    for (auto i = clip_starti, j = src_starti; i < clip_endi; i++, j++) {
-        sum += abs(problem[i] - src[j]);
-    }
 
-    //残りの加算
+    //生problemの前加算
+#pragma unroll 8
     for (auto i = 0; i < clip_starti; i++) {
         sum += abs(problem[i]);
     }
 
+#pragma unroll 8
+    for (auto i = clip_starti, j = src_starti; i < clip_endi; i++, j++) {
+        sum += abs(problem[i] - src[j]);
+        // sum = __sad(problem[i], src[j], sum);
+    }
+
+    //生problemの後加算
+#pragma unroll 8
     for (auto i = clip_endi; i < problemLen; i++) {
         sum += abs(problem[i]);
     }
@@ -70,8 +78,8 @@ int main() {
     min_sum sums[BASE_AUDIO_N];
     double iStart = cpuSecond();
     // wave読み込み
-    AudioFile<short> problem_wave("samples/original/problem4.wav");
-    AudioFile<short> baseAudios[BASE_AUDIO_N];
+    AudioFile<AUDIO_TYPE> problem_wave("samples/original/problem4.wav");
+    AudioFile<AUDIO_TYPE> baseAudios[BASE_AUDIO_N];
     int baseAudio_length[BASE_AUDIO_N];
 
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
@@ -87,8 +95,8 @@ int main() {
 
     // デバイス（GPU）側メモリに領域を確保
     int problem_length = problem_wave.getNumSamplesPerChannel();
-    thrust::device_vector<short> problem_d(problem_length);
-    thrust::device_vector<short> baseAudios_d[BASE_AUDIO_N];
+    thrust::device_vector<AUDIO_TYPE> problem_d(problem_length);
+    thrust::device_vector<AUDIO_TYPE> baseAudios_d[BASE_AUDIO_N];
     thrust::device_vector<unsigned int> sum_tmp[BASE_AUDIO_N];
     problem_d = problem_wave.samples[0];
 
@@ -96,7 +104,7 @@ int main() {
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
         new (sum_tmp + i) thrust::device_vector<unsigned int>((problem_length + baseAudio_length[i] - 2) / SKIP_N);
         //転送
-        new (baseAudios_d + i) thrust::device_vector<short>(baseAudio_length[i]);
+        new (baseAudios_d + i) thrust::device_vector<AUDIO_TYPE>(baseAudio_length[i]);
         cudaMemcpyAsync(thrust::raw_pointer_cast(baseAudios_d[i].data()), baseAudios[i].samples[0].data(), baseAudios[i].samples[0].size(), cudaMemcpyHostToDevice, streams[i]);
     }
     cudaThreadSynchronize();

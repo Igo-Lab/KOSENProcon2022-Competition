@@ -22,7 +22,7 @@
 #define SKIP_N (22)
 #define MAX_LENGTH (7358334)
 
-using AUDIO_TYPE = int32_t;
+using AUDIO_TYPE = short;
 
 typedef struct {
     unsigned int sum;
