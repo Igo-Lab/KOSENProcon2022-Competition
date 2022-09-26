@@ -112,7 +112,7 @@ int main() {
 
     // processing
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
-        new (sum_tmp + i) thrust::device_vector<unsigned int>((problem_length + baseAudio_length[i] - 2) / SKIP_N);
+        new (sum_tmp + i) thrust::device_vector<unsigned int>((problem_length + baseAudio_length[i] - 2));
         //転送
         new (baseAudios_d + i) thrust::device_vector<AUDIO_TYPE>(baseAudio_length[i]);
         cudaMemcpyAsync(thrust::raw_pointer_cast(baseAudios_d[i].data()), baseAudios[i].data(), baseAudio_length[i], cudaMemcpyHostToDevice, streams[i]);
