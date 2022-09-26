@@ -74,10 +74,11 @@ template <typename T>
 void array_compactor(std::vector<T> &in, thrust::host_vector<T> &out, size_t times) {
     for (auto j = 0, bidx = 0; j < in.size(); j += SKIP_N, bidx++) {
         int sum = 0;
-        for (auto k = 0; k < SKIP_N && j + k < in.size(); k++) {
+        int k = 0;
+        for (; k < SKIP_N && j + k < in.size(); k++) {
             sum += in[j + k];
         }
-        out[bidx] = sum / SKIP_N;
+        out[bidx] = sum / (k + 1);
     }
 }
 
