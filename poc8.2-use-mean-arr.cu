@@ -74,7 +74,7 @@ template <typename T>
 void array_compactor(std::vector<T> &in, thrust::host_vector<T> &out, size_t times) {
     for (auto j = 0, bidx = 0; j < in.size(); j += SKIP_N, bidx++) {
         int sum = 0;
-        for (auto k = 0; k < SKIP_N; k++) {
+        for (auto k = 0; k < SKIP_N && j + k < in.size(); k++) {
             sum += in[j + k];
         }
         out[bidx] = sum / SKIP_N;
@@ -115,7 +115,7 @@ int main() {
     thrust::device_vector<AUDIO_TYPE> problem_d(problem_length);
     thrust::device_vector<AUDIO_TYPE> baseAudios_d[BASE_AUDIO_N];
     thrust::device_vector<unsigned int> sum_tmp[BASE_AUDIO_N];
-    problem_d = problem_wave.samples[0];
+    problem_d = problem_wave;
 
     // processing
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
