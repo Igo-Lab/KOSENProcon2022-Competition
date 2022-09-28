@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "AudioFile.h"
+#include "gpu_process.h"
 
 using AUDIO_TYPE = short;
 constexpr size_t BASE_AUDIO_N = 1;
