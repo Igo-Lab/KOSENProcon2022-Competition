@@ -35,6 +35,6 @@ test:
 	pytest -sv tests
 
 .PHONY: run
-run:
+run: build
 	python -m kosenprocon
  	
