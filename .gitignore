@@ -15,3 +15,4 @@ pip-selfcheck.json
 *.nsys-rep
 *.o
 *.nvvp
+*.so
