@@ -18,3 +18,4 @@ pip-selfcheck.json
 *.nvvp
 *.so
 .pytest_cache
+__pycache__
