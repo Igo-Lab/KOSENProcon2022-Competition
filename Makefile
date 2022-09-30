@@ -33,4 +33,8 @@ clean:
 .PHONY: test
 test:
 	pytest -sv tests
+
+.PHONY: run
+run:
+	python -m kosenprocon
  	

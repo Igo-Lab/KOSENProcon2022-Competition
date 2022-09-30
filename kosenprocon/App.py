@@ -4,8 +4,7 @@ import os
 import time
 import wave
 import numpy as np
-import main_logger
-import constant
+from . import libs
 import soxr
 
 
@@ -13,7 +12,7 @@ class App:
     logger: Logger = None
     compressed_srcs: list[np.ndarray] = []
     raw_src: list[np.ndarray] = []
-    compressing_rate: int = constant.COMPRESSING_RATE
+    compressing_rate: int = libs.constant.COMPRESSING_RATE
 
     @classmethod
     def app(cls, logger: Logger):
@@ -31,8 +30,8 @@ class App:
         cls.raw_src.clear()
         cls.compressed_srcs.clear()
 
-        for i in range(1, constant.LOAD_BASE_NUM + 1):
-            with wave.open(rf"{constant.BASE_AUDIO_DIR}/{i}.wav") as wr:
+        for i in range(1, libs.constant.LOAD_BASE_NUM + 1):
+            with wave.open(rf"{libs.constant.BASE_AUDIO_DIR}/{i}.wav") as wr:
                 data = np.frombuffer(wr.readframes(-1), dtype=np.int16)
                 cls.raw_src.append(data)
                 cls.compressed_srcs.append(cls.compress(data))
@@ -49,8 +48,8 @@ class App:
         cls.logger.info(f"Compressing... {len(src)}->{int(len(src)/rate)}")
         rs = soxr.resample(
             src,
-            constant.SRC_SAMPLE_RATE,
-            int(constant.SRC_SAMPLE_RATE / cls.compressing_rate),
+            libs.constant.SRC_SAMPLE_RATE,
+            int(libs.constant.SRC_SAMPLE_RATE / cls.compressing_rate),
         )
         return rs
 
@@ -78,6 +77,3 @@ class App:
         pass
 
 
-if __name__ == "__main__":
-    logger = main_logger.setLogger()
-    App.app(logger)
