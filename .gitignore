@@ -7,6 +7,7 @@
 [Ll]ib64
 [Ll]ocal
 [Ss]cripts
+objs
 pyvenv.cfg
 .venv
 pip-selfcheck.json
@@ -16,3 +17,4 @@ pip-selfcheck.json
 *.o
 *.nvvp
 *.so
+.pytest_cache
