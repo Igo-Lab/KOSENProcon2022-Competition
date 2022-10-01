@@ -1,0 +1,223 @@
+{
+  "uuid": "e5383a53-fbb3-4271-8a52-28c52e8d7b70",
+  "lastMigration": 22,
+  "name": "Demo API (copy)",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3001,
+  "hostname": "0.0.0.0",
+  "routes": [
+    {
+      "uuid": "9c3a8943-c017-4ea6-bda6-f1d0e8a2f597",
+      "documentation": "Generate random body (JSON, text, CSV, etc) with templating",
+      "method": "get",
+      "endpoint": "match",
+      "responses": [
+        {
+          "uuid": "deb5a740-7ac2-4df9-944c-e26b1139f7e4",
+          "body": "{\r\n    \"problems\": 3,\r\n    \"bonus_factor\": [1.0],\r\n    \"penalty\": 1\r\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Creates 10 random users, or the amount specified in the 'total' query param",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    },
+    {
+      "uuid": "1069ba94-04c8-4e42-a7f4-23a59115b6a8",
+      "documentation": "Use multiple responses with rules",
+      "method": "get",
+      "endpoint": "problem",
+      "responses": [
+        {
+          "uuid": "9c15cbfb-6639-4aa3-91b6-6aabfdebddd9",
+          "body": "{\r\n    \"id\": \"qual-1-1\",\r\n    \"chunks\": 2,\r\n    \"starts_at\": 1655302266,\r\n    \"time_limit\": 1000,\r\n    \"data\": 3\r\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Default response",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "9d669546-e96f-4b5e-81ec-ac15a135f0ae",
+          "body": "{\n  \"Rules example\": \"Content XYZ. Served if route param 'param1' equals 'xyz'. (See in 'Rules' tab)\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Content XYZ",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "param1",
+              "value": "xyz",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "271a3feb-42d7-44d2-a466-7f53a9d831be",
+          "body": "{\n  \"Rules example\": \"Content not found. Served if route param 'param1' is not equal to 'xyz'. (See in 'Rules' tab)\"\n}\n",
+          "latency": 0,
+          "statusCode": 404,
+          "label": "Content not found",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "param1",
+              "value": "^(?!.*xyz).*$",
+              "invert": false,
+              "operator": "regex"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    },
+    {
+      "uuid": "f6b2842b-7934-4570-963a-e1f0c4dfa973",
+      "documentation": "Serve a file dynamically depending on the path param 'pageName'.",
+      "method": "post",
+      "endpoint": "problem/chunks",
+      "responses": [
+        {
+          "uuid": "9fc76508-0142-4c71-8f5d-ba7ead642dcf",
+          "body": "{\r\n    \"chunks\": [\r\n        \"problem3_31c6b25b1810f0c5b87a30a1ea17dcd2a5b9f832.wav\",\r\n        \"problem1_75012769dcc8b201e17816927628dab234d5451b.wav\",\r\n    ]\r\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Templating is also supported in file path",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/html"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    },
+    {
+      "uuid": "27723f0f-64c1-44ec-b533-480517dbddc9",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "problem/chunks/:filename",
+      "responses": [
+        {
+          "uuid": "cb477018-a8b9-4270-880e-b1b76482491c",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "D:\\Documents\\Programming\\Python\\KOSENProcon2022-Competition\\samples\\sample_Q_202205\\sample_Q_E01\\problem1.wav",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    },
+    {
+      "uuid": "bec6e495-bcc6-47ca-8408-18714bd0a7a9",
+      "documentation": "Path supports various patterns",
+      "method": "post",
+      "endpoint": "problem",
+      "responses": [
+        {
+          "uuid": "3d8f9ae1-971c-4b05-9917-9e5f10f5a008",
+          "body": "{\r\n    \"problem_id\": \"qual-1-1\",    \r\n    \"answers\": [\"01\", \"02\"],\r\n    \"accepted_at\": 1656601200,\r\n}\r\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/plain"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ]
+}
