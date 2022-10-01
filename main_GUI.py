@@ -10,7 +10,7 @@ from functools import partial
 import os
 
 import call_test #仮でimportしている
-import post_client
+import relaySVlib
 
 if __name__ == '__main__':
 
