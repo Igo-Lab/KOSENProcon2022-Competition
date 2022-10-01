@@ -23,16 +23,19 @@ else:
     #試合情報の取得
     def GETrequest_match():
         res = requests.get(url=SV_URL+'match',params=params)
-        print(res.status_code)
-        print(res.json())
+        code = res.status_code
+        jsn = json.loads(res.json())
+        return code,jsn
 
     #問題情報の取得
-    def syutoku(P_ID):
+    def GETrequest_problem():
         surl=SV_URL+'problem'
         res=requests.get(surl,params)
-        print(res.status_code)
+        code = res.status_code
         print(res.json())
-        P_ID = json.loads(res.json())
+        info = json.loads(res.json())
+
+        return code,info
 
     #文字数制限
     def limit_char(st_lim):
@@ -74,5 +77,6 @@ else:
         hed = {'Content-Type':'application/json'}
         payload = {'problem_id':P_ID,'answers':answers}
         res = requests.post(url=SV_URL+'problem',headers=hed,params=params,data=payload)
-        print(res.status_code)
+        code = res.status_code
         print(res.json())
+        return code

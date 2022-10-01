@@ -34,6 +34,7 @@ if __name__ == '__main__':
         box_ans = tk.Entry(wid,width=50)
         box_ans.place(x=50,y=50)
         box_ans.insert(tk.END,str(data))
+
         #修正入力側
         box_name2 = tk.Label(wid,font=("normal",20),text='修正を入力',bg="black",fg="#ffffff")
         box_name2.place(x=0,y=150)
@@ -65,6 +66,7 @@ if __name__ == '__main__':
 
     #分割データを取得
     def get_prob_data(hmd):
+        relaySVlib.GETrequest_problem()
         print('問題データを取得')
         print('分割データ数:'+ hmd.get())
         #処理
@@ -133,12 +135,13 @@ if __name__ == '__main__':
 
     #判別結果を送信
     def post_ans(answer):
+        relaySVlib.POSTrequest_answer(problemID,answer)
         print('自動判別の回答を送信した')
         print(answer)
 
     #修正した回答のデータを送信
     def post_fix_ans(func):
-        
+        relaySVlib.POSTrequest_answer(problemID,func.get())
         print('修正済みの回答を送信した')
         print(func.get())
 
