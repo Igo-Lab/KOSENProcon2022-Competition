@@ -16,8 +16,7 @@ def POSTrequest_problem(how):
     keywad={'token':main_GUI.TOKEN,'n':''+str(ge)}
     oto=requests.post(burl,params=keywad)
     print(oto.status_code)
-    oput=oto.json()
-    #text.delete('1.0', tk.END)
+    oput=oto.json() #分割データのファイル名が入っている
     print(oput)
 
     #wavの取得
@@ -43,11 +42,10 @@ def POSTrequest_problem(how):
 
 
 
-#ステータスコード確認
+#問題情報の取得
 def syutoku(P_ID):
     surl='https://procon33-practice.kosen.work/problem'
     res=requests.get(surl,params)
-    #nin.delete(0, tk.END)
     print(res.status_code)
     print(res.json())
     P_ID = json.loads(res.json())
