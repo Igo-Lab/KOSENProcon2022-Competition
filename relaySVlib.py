@@ -1,63 +1,78 @@
 import tkinter as tk
+from tkinter import messagebox
 import requests
 import json
 from tkinter.scrolledtext import ScrolledText
-import main_GUI
 
-#パラメータの定義
-params={'procon-token':main_GUI.TOKEN}
-P_ID = []
-answers = []
+#ファイルの読み込み
+try:
+    with open("config.txt","r",encoding='utf-8') as CONFIG_FILE:
+        TOKEN = CONFIG_FILE.readline()
+        SV_URL = CONFIG_FILE.readline()
+        CONFIG_FILE.close()
 
-#分割数送信
-def POSTrequest_problem(how):
-    ge=int(how.get())
-    burl='https://procon33-practice.kosen.work/problem/chunks'
-    keywad={'token':main_GUI.TOKEN,'n':''+str(ge)}
-    oto=requests.post(burl,params=keywad)
-    print(oto.status_code)
-    oput=oto.json() #分割データのファイル名が入っている
-    print(oput)
+except FileNotFoundError:
+    messagebox.showerror('エラー','config.txtが存在しません')
 
-    #wavの取得
+else:
+    #パラメータの定義
+    params={'procon-token':TOKEN}
+    P_ID = []
+    answers = []
 
-    suu=ge
-    #繰り返しのカウント変数
-    i=0
-    #jsonの要素を受け取るリスト
-    num=[]
-    #分割データのurlを受け取るリスト
-    curl=[]
-    #WAVファイルを受け取るリスト
-    global wsyu
-    wsyu=[]
-    
-    #wavを受け取るループ
-    while  i<suu :
-        num.append(oput['chunks'][i])
-        curl.append('https://procon33-practice.kosen.work/problem/chunks'+str(num[i]))
-        wsyu.append(requests.get(curl[i],params=params))
-        print(num[i])
-        i=i+1
+    #試合情報の取得
+    def GETrequest_match():
+        res = requests.get(url=SV_URL+'match',params=params)
+        print(res.status_code)
+        print(res.json())
 
+    #問題情報の取得
+    def syutoku(P_ID):
+        surl=SV_URL+'problem'
+        res=requests.get(surl,params)
+        print(res.status_code)
+        print(res.json())
+        P_ID = json.loads(res.json())
 
+    #文字数制限
+    def limit_char(st_lim):
+        return len(st_lim) <= 1
 
-#問題情報の取得
-def syutoku(P_ID):
-    surl='https://procon33-practice.kosen.work/problem'
-    res=requests.get(surl,params)
-    print(res.status_code)
-    print(res.json())
-    P_ID = json.loads(res.json())
+    #取得する分割データの指定
+    def POSTrequest_problem(how):
+        ge=int(how.get())
+        burl=SV_URL+'problem/chunks'
+        keywad={'token':TOKEN,'n':''+str(ge)}
+        oto=requests.post(burl,params=keywad)
+        print(oto.status_code)
+        oput=oto.json() #分割データのファイル名が入っている
+        print(oput)
 
-#文字数制限
-def limit_char(st_lim):
-    return len(st_lim) <= 1
+        #wavの取得
 
-#回答を送信する
-def POSTrequest_answer(P_ID,answers):
-    hed = {'Content-Type':'application/json'}
-    payload = {'problem_id':P_ID,'answers':answers}
-    res = requests.post(url='https://procon33-practice.kosen.work/problem',headers=hed,params=params,data=payload)
-    print(res.status_code)
-    print(res.json())
+        suu=ge
+        #繰り返しのカウント変数
+        i=0
+        #jsonの要素を受け取るリスト
+        num=[]
+        #分割データのurlを受け取るリスト
+        curl=[]
+        #WAVファイルを受け取るリスト
+        global wsyu
+        wsyu=[]
+        
+        #wavを受け取るループ
+        while  i<suu :
+            num.append(oput['chunks'][i])
+            curl.append(SV_URL+'problem/chunks'+str(num[i]))
+            wsyu.append(requests.get(curl[i],params=params))
+            print(num[i])
+            i=i+1
+
+    #問題への回答
+    def POSTrequest_answer(P_ID,answers):
+        hed = {'Content-Type':'application/json'}
+        payload = {'problem_id':P_ID,'answers':answers}
+        res = requests.post(url=SV_URL+'problem',headers=hed,params=params,data=payload)
+        print(res.status_code)
+        print(res.json())
