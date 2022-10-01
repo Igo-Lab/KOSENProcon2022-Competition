@@ -4,7 +4,7 @@ import os
 import time
 import wave
 import numpy as np
-from . import libs
+import libs
 import soxr
 from requests import Timeout
 
@@ -14,7 +14,7 @@ class App:
     raw_src: list[np.ndarray] = []
     raw_problem: np.ndarray = np.array([], dtype=np.int16)
     compressed_problem: np.ndarray = np.array([], dtype=np.int16)
-    compressing_rate: int = libs.constant.COMPRESSING_RATE
+    compressing_rate: int = libs.COMPRESSING_RATE
 
     @classmethod
     def app(cls):
@@ -39,8 +39,8 @@ class App:
         cls.raw_src.clear()
         cls.compressed_srcs.clear()
 
-        for i in range(1, libs.constant.LOAD_BASE_NUM + 1):
-            with wave.open(rf"{libs.constant.BASE_AUDIO_DIR}/{i}.wav") as wr:
+        for i in range(1, libs.LOAD_BASE_NUM + 1):
+            with wave.open(rf"{libs.BASE_AUDIO_DIR}/{i}.wav") as wr:
                 data = np.frombuffer(wr.readframes(-1), dtype=np.int16)
                 cls.raw_src.append(data)
                 cls.compressed_srcs.append(cls.compress(data))
@@ -51,7 +51,7 @@ class App:
     def load_problem(cls):
         logger.info("Loading a problem")
         # とりあえず一旦こうする．本番ではhttpでゲットする仕組みが必要
-        with wave.open(libs.constant.EXAMPLE_PROBLEM) as wr:
+        with wave.open(libs.EXAMPLE_PROBLEM) as wr:
             cls.raw_problem = np.frombuffer(wr.readframes(-1), dtype=np.int16)
             cls.compressed_problem = cls.compress(cls.raw_problem)
 
@@ -64,8 +64,8 @@ class App:
         logger.info(f"Compressing... {len(src)}->{int(len(src)/rate)}")
         rs = soxr.resample(
             src,
-            libs.constant.SRC_SAMPLE_RATE,
-            int(libs.constant.SRC_SAMPLE_RATE / cls.compressing_rate),
+            libs.SRC_SAMPLE_RATE,
+            int(libs.SRC_SAMPLE_RATE / cls.compressing_rate),
         )
         return rs
 
