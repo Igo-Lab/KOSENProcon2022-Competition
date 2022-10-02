@@ -6,7 +6,7 @@ import wave
 import numpy as np
 import libs
 import soxr
-from requests import Timeout
+from requests import Timeout, exceptions
 
 
 class App:
@@ -16,6 +16,9 @@ class App:
     compressed_problem: np.ndarray = np.array([], dtype=np.int16)
     compressing_rate: int = libs.COMPRESSING_RATE
 
+    match: libs.MatchData
+    problems: list[libs.ProblemData] = []
+
     @classmethod
     def app(cls):
         logger.info("Starting...")
@@ -23,15 +26,24 @@ class App:
         cls.load_srcs()
 
         while True:
-            cls.wait_for_it()
-            while True:
-                try:
-                    cls.load_problem()
-                    break
-                except Timeout:
-                    logger.warning(
-                        "Can't retrieve a problem. May be the server is over loaded."
+            try:
+                cls.match = libs.get_match()
+                while True:
+                    p = libs.get_problem()
+                    # 事前に配布された問題と被っていないか確認
+                    same_id_num = len(
+                        [+1 for _ in filter(lambda prob: prob.id == p.id, cls.problems)]
                     )
+
+                    if same_id_num > 0:
+                        continue
+
+                    # F5アタックにならないようにストッパ
+                    time.sleep(0.5)
+            except exceptions.RequestException:
+                logger.warning(
+                    "Can't retrieve a problem. May be the server is over loaded or not the match isn't started."
+                )
 
     @classmethod
     def load_srcs(cls):
@@ -81,7 +93,7 @@ class App:
             cls.compressed_problem = cls.compress(cls.raw_problem, rate)
 
     @classmethod
-    def wait_for_it(cls):
+    def wait_for_match(cls):
         logger.info("Waiting for match starting.")
         # 今はsleepかけてるだけだけど本番はhttpとってこなきゃいけない
         time.sleep(1)
