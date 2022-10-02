@@ -1,14 +1,19 @@
 from pydantic import BaseModel
 from typing import *
+import constant
+import requests
+import pydantic
+
+REQ_HEADER = {"procon-token": constant.API_TOKEN}
 
 
-class match_data(BaseModel):
+class MatchData(BaseModel):
     problems: int
     bonus_factor: List[float]
     penalty: int
 
 
-class problem_data(BaseModel):
+class ProblemData(BaseModel):
     id: str
     chunks: int
     starts_at: int
@@ -16,11 +21,11 @@ class problem_data(BaseModel):
     data: int
 
 
-class chunk_place_data(BaseModel):
+class ChunkPlaceData(BaseModel):
     chunks: list[str]
 
 
-class answer_data(BaseModel):
+class AnswerData(BaseModel):
     problem_id: str
     answers: list[str]
 
@@ -31,12 +36,20 @@ class answer_verified_data(BaseModel):
     accepted_at: int
 
 
-def get_match():
-    pass
+def get_match() -> MatchData:
+    r = requests.get(
+        constant.API_URL + "/match", headers=REQ_HEADER, timeout=constant.TIMEOUT
+    )
+    r.raise_for_status()
+    return MatchData.parse_raw(r.text)
 
 
-def get_problem():
-    pass
+def get_problem() -> ProblemData:
+    r = requests.get(
+        constant.API_URL + "/problem", headers=REQ_HEADER, timeout=constant.TIMEOUT
+    )
+    r.raise_for_status()
+    return ProblemData.parse_raw(r.text)
 
 
 def get_chunks(n: int):

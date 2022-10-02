@@ -18,7 +18,7 @@
 
 #include "AudioFile.h"
 
-#define BASE_AUDIO_N (1)
+#define BASE_AUDIO_N (88)
 #define SKIP_N (16)
 #define MAX_LENGTH (7358334)
 
