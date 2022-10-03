@@ -2,11 +2,12 @@ from email import header
 from hashlib import new
 from pydantic import BaseModel
 from typing import *
-import constant
+from . import constant
 import requests
 import numpy as np
 import numpy.typing as npt
 import wave
+from loguru import logger
 
 REQ_HEADER = {"procon-token": constant.API_TOKEN}
 
@@ -49,6 +50,7 @@ def get_match() -> MatchData:
 
 
 def get_problem() -> ProblemData:
+    logger.info("Get a problem.")
     r = requests.get(
         constant.API_URL + "/problem", headers=REQ_HEADER, timeout=constant.TIMEOUT
     )

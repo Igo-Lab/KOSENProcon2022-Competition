@@ -36,5 +36,6 @@ test:
 
 .PHONY: run
 run: build
+	isort kosenprocon tests
+	black kosenprocon tests
 	python -m kosenprocon
- 	

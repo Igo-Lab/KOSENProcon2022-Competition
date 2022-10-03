@@ -95,3 +95,9 @@ maxwellの場合2048
 
 # サンプリングレート
 　48kHz
+
+# Jetsonのセットアップについて
+セットアップ後，スクリーンセーバー無効化・アップデートの確認無効化・ファンの自動回転スクリプト（下記）を/etc/rc.locaに書き込む．rc.localにchmod +xしないといけない．
+```
+sudo sh -c 'echo 80 > /sys/devices/pwm-fan/target_pwm'
+```
