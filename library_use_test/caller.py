@@ -1,5 +1,4 @@
 import ctypes
-from ssl import cert_time_to_seconds
 import numpy as np
 from numpy import ctypeslib
 

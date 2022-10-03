@@ -1,9 +1,11 @@
 from email import header
+from hashlib import new
 from pydantic import BaseModel
 from typing import *
 import constant
 import requests
 import numpy as np
+import numpy.typing as npt
 import wave
 
 REQ_HEADER = {"procon-token": constant.API_TOKEN}
@@ -55,29 +57,35 @@ def get_problem() -> ProblemData:
 
 
 # 重複しているデータは取り寄せたくない
-def get_chunks(n: int, already: set[int]) -> np.ndarray[np.ndarray]:
+# すでに持っている問題データとつながりそうならつなげて返却する
+# already: 事前に持っているchunksの番号とデータ内容のlist。
+# return: (データ番号,取得したデータ)のタプル
+
+
+def get_chunk(already: list[(int, list[np.int16])]) -> tuple[int, list[int]]:
     r = requests.post(
         constant.API_URL + "/problem/chunks",
-        params={"n": n},
+        params={"n": len(already) + 1},
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
     )
     r.raise_for_status()
     chds = ChunkPlaceData.parse_raw(r.text)
 
-    wavs: np.ndarray[np.ndarray] = np.empty(0, dtype=np.ndarray)
-    for chd in chds.chunks:
-        r = requests.get(
-            constant.API_URL + f"/problem/chunks/{chd}",
-            headers=REQ_HEADER,
-            timeout=constant.TIMEOUT,
-        )
-        r.raise_for_status()
+    new_no = int(chds.chunks[-1].spilit("_")[0][-1])
 
-        with wave.open(r.content) as wr:
-            np.append(wavs, np.frombuffer(wr.readframes(-1), dtype=np.int16))
+    r = requests.get(
+        constant.API_URL + f"/problem/chunks/{chds.chunks[-1]}",
+        headers=REQ_HEADER,
+        timeout=constant.TIMEOUT,
+    )
+    r.raise_for_status()
 
-    return wavs
+    wav: npt.NDArray[np.int16]
+    with wave.open(r.content) as wr:
+        wav = np.frombuffer(wr.readframes(-1), dtype=np.int16).tolist()
+
+    return (new_no, wav)
 
 
 def send_answer():

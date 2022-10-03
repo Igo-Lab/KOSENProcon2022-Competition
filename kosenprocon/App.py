@@ -6,6 +6,7 @@ import time
 import wave
 import numpy as np
 import numpy.typing as npt
+import copy
 import libs
 import soxr
 from requests import Timeout, exceptions
@@ -16,14 +17,13 @@ class App:
     compressed_srcs: npt.NDArray[np.int16]
     raw_srcs: list[list[np.int16]]
     # 1D
-    raw_problem: list[list[np.int16]]
-    compressed_problem: npt.NDArray[np.int16]
+    raw_chunks: list[tuple[int, list[int]]]
+    compressed_chunk: npt.NDArray[np.int16]
 
     compressing_rate: int = libs.COMPRESSING_RATE
 
     match: libs.MatchData
     problems_data: list[libs.ProblemData] = []
-    already_have_problem: set[int] = set()
 
     @classmethod
     def app(cls):
@@ -35,9 +35,12 @@ class App:
 
         cls.load_srcs()
 
+        # 試合開始待機ループ
         while True:
             try:
                 cls.match = libs.get_match()
+
+                # 問題取得ループ
                 while True:
                     p = libs.get_problem()
                     # 事前に配布された問題と被っていないか確認
@@ -56,9 +59,46 @@ class App:
                     # 末尾に問題情報を追加
                     cls.problems_data.append(p)
 
-                    # 問題ファイルを取り寄せる
-                    while cls.problems_data[-1].chunks > len(cls.already_have_problem):
-                        l = libs.get_chunks(1, cls.already_have_problem)
+                    # 本当は時刻チェックが必要だが・・・
+
+                    # chunkファイルを取り寄せる
+                    # while文中で確定でファイルを取り寄せるためこのような条件式になっている
+                    for _ in range(cls.problems_data[-1].chunks):
+                        cls.raw_chunks.append(libs.get_chunk(cls.raw_chunks))
+                        # 1こづつ取り出し、つなげられそうならつなげる
+                        tmp_joined_chunk = copy.copy(cls.raw_chunks[-1])
+                        joined_num = 1
+                        while len(cls.raw_chunks) - joined_num > 0:
+                            # 後ろが連番になってないか。raw_chunks={(1, []), (3, []), (2, [])})のとき、[2]から走査していき、[1]にヒットする
+                            filtered = filter(
+                                lambda x: cls.raw_chunks[-1][0] + 1 == x[0],
+                                cls.raw_chunks[:-1],
+                            )
+                            # isempty
+                            l = list(filtered)
+                            if len(l) > 0:
+                                tmp_joined_chunk = [*tmp_joined_chunk, *l[0][1]]
+                                joined_num += 1
+
+                            # 前が連番になっていないか
+                            filtered = filter(
+                                lambda x: cls.raw_chunks[-1][0] - 1 == x[0],
+                                cls.raw_chunks[:-1],
+                            )
+                            # isempty
+                            l = list(filtered)
+                            if len(l) > 0:
+                                tmp_joined_chunk = [*l[0][1], *tmp_joined_chunk]
+                                joined_num += 1
+
+                        cls.compressed_chunk = cls.compress(
+                            np.array(tmp_joined_chunk, dtype=np.int16),
+                            libs.COMPRESSING_RATE,
+                        )
+
+                        solve(cls.compressed_chunk, cls.compressed_srcs)
+
+                        # 結果によってbreakでfor抜ける
 
                     # F5アタックにならないようにリミッタ
                     time.sleep(0.5)
@@ -103,15 +143,20 @@ class App:
         return rs
 
     @classmethod
-    def set_compaction_rate(cls, rate: int):
-        if cls.compressing_rate != rate:
-            cls.compressing_rate = rate
-            cls.compressed_srcs.clear()
+    def solve():
+        # TODO: cuda呼び出し
+        pass
 
-            for src in cls.raw_srcs:
-                cls.compressed_srcs.append(cls.compress(src), rate)
+    # @classmethod
+    # def set_compaction_rate(cls, rate: int):
+    #     if cls.compressing_rate != rate:
+    #         cls.compressing_rate = rate
+    #         cls.compressed_srcs.clear()
 
-            cls.compressed_problem = cls.compress(cls.raw_problem, rate)
+    #         for src in cls.raw_srcs:
+    #             cls.compressed_srcs.append(cls.compress(src), rate)
+
+    #         cls.compressed_problem = cls.compress(cls.raw_chunks, rate)
 
     @classmethod
     def wait_for_match(cls):
