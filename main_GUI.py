@@ -135,13 +135,11 @@ if __name__ == '__main__':
 
     #判別結果を送信
     def post_ans(answer):
-        relaySVlib.POSTrequest_answer(problemID,answer)
         print('自動判別の回答を送信した')
         print(answer)
 
     #修正した回答のデータを送信
     def post_fix_ans(func):
-        relaySVlib.POSTrequest_answer(problemID,func.get())
         print('修正済みの回答を送信した')
         print(func.get())
 
