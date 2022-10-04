@@ -1,5 +1,6 @@
 from email import header
 from hashlib import new
+import io
 from pydantic import BaseModel
 from typing import *
 from . import constant
@@ -10,6 +11,7 @@ import wave
 from loguru import logger
 
 REQ_HEADER = {"procon-token": constant.API_TOKEN}
+PROXY = {"http": "", "https": ""}
 
 
 class MatchData(BaseModel):
@@ -42,49 +44,56 @@ class answer_verified_data(BaseModel):
 
 
 def get_match() -> MatchData:
+    logger.info("Trying to get a match.")
     r = requests.get(
-        constant.API_URL + "/match", headers=REQ_HEADER, timeout=constant.TIMEOUT
+        constant.API_URL + "/match",
+        headers=REQ_HEADER,
+        timeout=constant.TIMEOUT,
+        proxies=PROXY,
     )
     r.raise_for_status()
     return MatchData.parse_raw(r.text)
 
 
 def get_problem() -> ProblemData:
-    logger.info("Get a problem.")
+    logger.info("Trying to get a problem.")
     r = requests.get(
-        constant.API_URL + "/problem", headers=REQ_HEADER, timeout=constant.TIMEOUT
+        constant.API_URL + "/problem",
+        headers=REQ_HEADER,
+        timeout=constant.TIMEOUT,
+        proxies=PROXY,
     )
     r.raise_for_status()
     return ProblemData.parse_raw(r.text)
 
 
-# 重複しているデータは取り寄せたくない
-# すでに持っている問題データとつながりそうならつなげて返却する
 # already: 事前に持っているchunksの番号とデータ内容のlist。
 # return: (データ番号,取得したデータ)のタプル
 
 
-def get_chunk(already: list[(int, list[np.int16])]) -> tuple[int, list[int]]:
+def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[int]]:
     r = requests.post(
         constant.API_URL + "/problem/chunks",
         params={"n": len(already) + 1},
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
+        proxies=PROXY,
     )
     r.raise_for_status()
     chds = ChunkPlaceData.parse_raw(r.text)
 
-    new_no = int(chds.chunks[-1].spilit("_")[0][-1])
-
+    new_no = int(chds.chunks[-1].split("_")[0][-1])
+    logger.info(f"Trying to get chunk={new_no}")
     r = requests.get(
         constant.API_URL + f"/problem/chunks/{chds.chunks[-1]}",
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
+        proxies=PROXY,
     )
     r.raise_for_status()
 
     wav: npt.NDArray[np.int16]
-    with wave.open(r.content) as wr:
+    with wave.open(io.BytesIO(r.content)) as wr:
         wav = np.frombuffer(wr.readframes(-1), dtype=np.int16).tolist()
 
     return (new_no, wav)

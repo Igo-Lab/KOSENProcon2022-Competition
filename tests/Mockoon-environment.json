@@ -4,7 +4,7 @@
   "name": "Demo API (copy)",
   "endpointPrefix": "",
   "latency": 0,
-  "port": 3001,
+  "port": 12345,
   "hostname": "0.0.0.0",
   "routes": [
     {
@@ -27,6 +27,29 @@
           "disableTemplating": false,
           "fallbackTo404": false,
           "default": false
+        },
+        {
+          "uuid": "73ee097c-623f-4ee9-add9-b12dd3216ede",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 400,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "procon-token",
+              "value": "xxxxxxxxxxxx",
+              "invert": true,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
         }
       ],
       "enabled": true,
@@ -40,7 +63,7 @@
       "responses": [
         {
           "uuid": "9c15cbfb-6639-4aa3-91b6-6aabfdebddd9",
-          "body": "{\r\n    \"id\": \"qual-1-1\",\r\n    \"chunks\": 2,\r\n    \"starts_at\": 1655302266,\r\n    \"time_limit\": 1000,\r\n    \"data\": 3\r\n}",
+          "body": "{\r\n    \"id\": \"qual-1-1\",\r\n    \"chunks\": 3,\r\n    \"starts_at\": 1655302266,\r\n    \"time_limit\": 1000,\r\n    \"data\": 3\r\n}",
           "latency": 0,
           "statusCode": 200,
           "label": "Default response",
@@ -111,7 +134,7 @@
       "responses": [
         {
           "uuid": "9fc76508-0142-4c71-8f5d-ba7ead642dcf",
-          "body": "{\r\n    \"chunks\": [\r\n        \"problem3_31c6b25b1810f0c5b87a30a1ea17dcd2a5b9f832.wav\",\r\n        \"problem1_75012769dcc8b201e17816927628dab234d5451b.wav\",\r\n    ]\r\n}",
+          "body": "{\r\n    \"chunks\": [\r\n        \"problem3_a.wav\"\r\n    ]\r\n}",
           "latency": 0,
           "statusCode": 200,
           "label": "Templating is also supported in file path",
@@ -123,7 +146,140 @@
           ],
           "filePath": "",
           "sendFileAsBody": false,
-          "rules": [],
+          "rules": [
+            {
+              "target": "query",
+              "modifier": "n",
+              "value": "1",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "71df2892-45c7-4eee-831f-2310d4718409",
+          "body": "{\r\n    \"chunks\": [\r\n        \"problem3_a.wav\",\r\n        \"problem1_s.wav\"\r\n    ]\r\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "query",
+              "modifier": "n",
+              "value": "2",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "7762da41-8cff-4f1d-a088-df258c3d5756",
+          "body": "{\r\n    \"chunks\": [\r\n        \"problem3_a.wav\",\r\n        \"problem1_s.wav\",\r\n        \"problem2_b.wav\"\r\n    ]\r\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "query",
+              "modifier": "n",
+              "value": "3",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        }
+      ],
+      "enabled": true,
+      "responseMode": null
+    },
+    {
+      "uuid": "b5f269f2-1ae8-409a-9bb7-16a71e7fb5fb",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "problem/chunks/:filename",
+      "responses": [
+        {
+          "uuid": "2cb86fa0-98cb-4e6d-8b94-088ef3324466",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "C:\\Users\\takei\\Documents\\KOSENProcon\\dev\\samples\\sample_Q_202205\\sample_Q_E03\\problem1.wav",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "filename",
+              "value": "problem1_s.wav",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        },
+        {
+          "uuid": "c27dcb64-3e82-4196-8559-7c7f2ed7e882",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "C:\\Users\\takei\\Documents\\KOSENProcon\\dev\\samples\\sample_Q_202205\\sample_Q_E03\\problem2.wav",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "filename",
+              "value": "problem2_b.wav",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "7c157dcb-d55f-4f1a-92db-858659b34f15",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "filePath": "C:\\Users\\takei\\Documents\\KOSENProcon\\dev\\samples\\sample_Q_202205\\sample_Q_E03\\problem3.wav",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "filename",
+              "value": "problem3_a.wav",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
@@ -137,7 +293,7 @@
       "uuid": "27723f0f-64c1-44ec-b533-480517dbddc9",
       "documentation": "",
       "method": "get",
-      "endpoint": "problem/chunks/:filename",
+      "endpoint": "problem/chunks/problem3_a.wav",
       "responses": [
         {
           "uuid": "cb477018-a8b9-4270-880e-b1b76482491c",
@@ -146,7 +302,7 @@
           "statusCode": 200,
           "label": "",
           "headers": [],
-          "filePath": "D:\\Documents\\Programming\\Python\\KOSENProcon2022-Competition\\samples\\sample_Q_202205\\sample_Q_E01\\problem1.wav",
+          "filePath": "C:\\Users\\takei\\Documents\\KOSENProcon\\dev\\samples\\sample_Q_202205\\sample_Q_E03\\problem3.wav",
           "sendFileAsBody": false,
           "rules": [],
           "rulesOperator": "OR",
@@ -166,7 +322,7 @@
       "responses": [
         {
           "uuid": "3d8f9ae1-971c-4b05-9917-9e5f10f5a008",
-          "body": "{\r\n    \"problem_id\": \"qual-1-1\",    \r\n    \"answers\": [\"01\", \"02\"],\r\n    \"accepted_at\": 1656601200,\r\n}\r\n",
+          "body": "{\r\n    \"problem_id\": \"qual-1-1\",    \r\n    \"answers\": [\"01\", \"02\"],\r\n    \"accepted_at\": 1656601200\r\n}\r\n",
           "latency": 0,
           "statusCode": 200,
           "label": "",
