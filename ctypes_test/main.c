@@ -1,11 +1,11 @@
 #include <stdio.h>
 
-int kuso(int a){
-    return a+1;
-}
-
-char kass(char a[]){
-    a = "NULL";
-
-    printf("%s\n",a);
+int kass(int *a,int b){
+    char guide[] = "これが計算結果\n";
+    int c = 0;
+    for(int i=0;i<3;i++){
+        c+=*a+b;
+        a++;
+    }
+    printf("%d\n%s",c,guide);
 }
