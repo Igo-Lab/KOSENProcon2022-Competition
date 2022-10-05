@@ -1,15 +1,18 @@
+import copy
 import ctypes
-import sys
-from loguru import logger
 import os
+import sys
 import time
 import wave
+from calendar import c
+
 import numpy as np
 import numpy.typing as npt
-import copy
-from . import libs
 import soxr
-from requests import Timeout, exceptions
+from loguru import logger
+from requests import exceptions
+
+from . import libs
 
 
 class App:
@@ -23,8 +26,12 @@ class App:
 
     compressing_rate: int = libs.COMPRESSING_RATE
 
+    # 試合データ
     match: libs.MatchData
     problems_data: list[libs.ProblemData] = []
+
+    answer: set[int]
+    srcs_mask: set[int]  # CUDA処理側に処理しない元データ情報を渡す
 
     @classmethod
     def app(cls):
@@ -79,16 +86,23 @@ class App:
 
                         cls.compressed_chunk = cls.compress(
                             np.array(tmp_joined_chunk, dtype=np.int16),
-                            libs.COMPRESSING_RATE,
+                            cls.compressing_rate,
                         )
 
-                        cls.solve(
+                        sums = cls.get_sums(
                             cls.compressed_chunk,
                             cls.compressed_srcs,
                             cls.compressed_srcs_len,
                         )
 
-                    # 結果によってbreakでfor抜ける
+                        cls.choose_contained(sums, cls.answer)
+
+                        # 結果によってbreakでfor抜ける
+                        if len(cls.answer) * 2 >= cls.problems_data[-1].data:
+                            break
+
+                        # 次のCUDA処理のためのマスクを作成
+                        cls.makemask()
 
                     # F5アタックにならないようにリミッタ
                     time.sleep(2)
@@ -101,14 +115,16 @@ class App:
                 time.sleep(2)
 
     @classmethod
-    def load_srcs(cls):
+    def load_srcs(cls, reload=False):
         logger.info("Loading Srcs")
-        cls.raw_srcs = []
 
-        for i in range(1, libs.LOAD_BASE_NUM + 1):
-            with wave.open(rf"{libs.BASE_AUDIO_DIR}/{i}.wav") as wr:
-                data = np.frombuffer(wr.readframes(-1), dtype=np.int16)
-                cls.raw_srcs.append(data)
+        if not reload:
+            cls.raw_srcs = []
+
+            for i in range(1, libs.LOAD_BASE_NUM + 1):
+                with wave.open(rf"{libs.BASE_AUDIO_DIR}/{i}.wav") as wr:
+                    data = np.frombuffer(wr.readframes(-1), dtype=np.int16)
+                    cls.raw_srcs.append(data)
 
         maxlen = max(len(x) for x in cls.raw_srcs)
         compedarr = []
@@ -128,7 +144,9 @@ class App:
         logger.info("Loading has been done")
 
     @classmethod
-    def compress(cls, src: np.ndarray, rate: int = compressing_rate):
+    def compress(
+        cls, src: np.ndarray, rate: int = compressing_rate
+    ) -> npt.NDArray[np.int16]:
         if np.size(src) == 0:
             logger.warning("This src is empty. Check around.")
             raise ValueError
@@ -144,41 +162,39 @@ class App:
     # chunk: 解きたい問題データ
     # srcs: 成形された元データ集
     # src_lengths: 元データの本当の長さ。C側で利用される。
-    # return: 解析結果（和）のリスト
+    # mask: 処理しないやつを渡す
+    # return: 解析結果（和）のリスト [0]には1.wavを元データとして比較したときの最小時の和が入っている。
     @classmethod
-    def solve(
+    def get_sums(
         cls,
         chunk: npt.NDArray[np.int16],
         srcs: npt.NDArray[np.int16],
         src_lengths: npt.NDArray[np.int32],
+        mask: npt.NDArray[np.int16],
     ) -> npt.NDArray[np.int32]:
         # TODO: cuda呼び出し
         logger.info("Start Processing on CUDA.")
         logger.debug(f"problem chunk size: {chunk.shape}, srcs arr size()")
         pass
 
-    # @classmethod
-    # def set_compaction_rate(cls, rate: int):
-    #     if cls.compressing_rate != rate:
-    #         cls.compressing_rate = rate
-    #         cls.compressed_srcs.clear()
-
-    #         for src in cls.raw_srcs:
-    #             cls.compressed_srcs.append(cls.compress(src), rate)
-
-    #         cls.compressed_problem = cls.compress(cls.raw_chunks, rate)
-
     @classmethod
-    def wait_for_match(cls):
-        logger.info("Waiting for match starting.")
-        # 今はsleepかけてるだけだけど本番はhttpとってこなきゃいけない
-        time.sleep(1)
-
-        logger.warning("===!START!===")
-
-    @classmethod
-    def resolve(cls, problem: np.ndarray):
+    def choose_contained(sums: npt.NDArray[np.int32], answer: set[int]) -> list[int]:
         pass
+
+    # list中の重複しているもの(例:J01とE01は同時には出てこないのでJ01が指定されたとき両方除外する必要がある)を除外する。
+    @classmethod
+    def exclude_from_compressed_srcs(li: list[int]):
+        pass
+
+    @classmethod
+    def set_compaction_rate(cls, rate: int):
+        if cls.compressing_rate != rate:
+            logger.info("compaction rate was changed.")
+            cls.compressing_rate = rate
+
+            # reload
+            cls.load_srcs(reload=True)
+            cls.compressed_chunk = cls.compress(cls.raw_chunks, rate)
 
     @classmethod
     def show_result(cls):

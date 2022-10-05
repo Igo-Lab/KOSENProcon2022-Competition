@@ -1,14 +1,16 @@
-from email import header
-from hashlib import new
 import io
-from pydantic import BaseModel
+import wave
+from hashlib import new
 from typing import *
-from . import constant
-import requests
+from weakref import proxy
+
 import numpy as np
 import numpy.typing as npt
-import wave
+import requests
 from loguru import logger
+from pydantic import BaseModel
+
+from . import constant
 
 REQ_HEADER = {"procon-token": constant.API_TOKEN}
 PROXY = {"http": "", "https": ""}
@@ -16,7 +18,7 @@ PROXY = {"http": "", "https": ""}
 
 class MatchData(BaseModel):
     problems: int
-    bonus_factor: List[float]
+    bonus_factor: list[float]
     penalty: int
 
 
@@ -99,5 +101,19 @@ def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[int]
     return (new_no, wav)
 
 
-def send_answer():
-    pass
+def send_answer(problem_id: str, answer: list[int]):
+    logger.info("Trying to sending the answer.")
+    li = [f"{x:02}" for x in answer]
+
+    ad = AnswerData(problem_id=problem_id, answers=li)
+
+    r = requests.post(
+        constant.API_URL + "/problem",
+        headers=REQ_HEADER,
+        timeout=constant.TIMEOUT,
+        proxies=PROXY,
+        json=ad.json(),
+    )
+    r.raise_for_status()
+
+    logger.info(f"Sending complete. problem-id={problem_id} answer={answer}")
