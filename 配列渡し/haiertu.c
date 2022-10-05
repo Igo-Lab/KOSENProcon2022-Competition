@@ -1,0 +1,1 @@
+int data(int a,int b)
