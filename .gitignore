@@ -20,3 +20,5 @@ pip-selfcheck.json
 .pytest_cache
 __pycache__
 .vscode
+ProxyON.sh
+ProxyOFF.sh
