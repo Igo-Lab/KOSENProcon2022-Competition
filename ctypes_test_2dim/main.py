@@ -5,8 +5,6 @@ myso = ct.cdll.LoadLibrary('./main.so')
 pipiarray_PP = np.ctypeslib.ndpointer(dtype=np.uintp,ndim=1,flags="C")
 
 ckass = myso.kass
-#ここから先、ブックマークに入れてるブログを見て進め。みろ、ちゃんと全部
-#pipiarray = np.array(([1,2,3],[4,5,6]),dtype=np.uintp)
 pipiarray = np.zeros((3, 2), dtype=np.int32)
 
 ckass.restype = None #戻り値の型指定
