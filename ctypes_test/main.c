@@ -1,11 +1,15 @@
 #include <stdio.h>
 
 int kass(int *a,int b){
-    char guide[] = "これが計算結果\n";
-    int c = 0;
-    for(int i=0;i<3;i++){
-        c+=*a+b;
+    int i;
+
+    for(i=0;i<3;i++){
+        *a = 0;
+        printf("C側print: %d\n",*a);
         a++;
     }
-    printf("%d\n%s",c,guide);
+
+    for(i=0;i<3;i++){
+        a--;
+    }
 }
