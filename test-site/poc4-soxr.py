@@ -1,6 +1,7 @@
 import time
 import wave
 import numpy as np
+import soxr
 
 problem: str = r"samples\sample_Q_202205\sample_Q_M01\problem.wav"
 src_path: str = r"samples\JKspeech"
@@ -27,10 +28,9 @@ def main():
         data = wr.readframes(-1)
         problem_data = np.frombuffer(data, dtype=np.int16)
 
-        mean_problem_data = []
-        for i in range(0, len(problem_data), SKIP_N):
-            mean_problem_data.append(int(np.mean(problem_data[i : i + SKIP_N])))
-        mean_problem_data = np.array(mean_problem_data, dtype=np.int16)
+        mean_problem_data = soxr.resample(
+            problem_data, in_rate=48000, out_rate=48000 / SKIP_N, quality="MQ"
+        )
         print(f"sum={np.sum(np.abs(problem_data))}")
 
     timeline = np.arange(0, frame_size)
@@ -42,10 +42,9 @@ def main():
             data = np.frombuffer(data, dtype=np.int16)
             print(f"open: {i}.wav")
 
-            mean_data: np.ndarray = []
-            for j in range(0, len(data), SKIP_N):
-                mean_data.append(int(np.mean(data[j : j + SKIP_N])))
-            mean_data = np.array(mean_data, dtype=np.int16)
+            mean_data = soxr.resample(
+                data, in_rate=48000, out_rate=48000 / SKIP_N, quality="MQ"
+            )
 
             for j in range(1, mean_problem_data.__len__() + mean_data.__len__(), 1):
                 clip_starti = max(0, j - mean_data.__len__())

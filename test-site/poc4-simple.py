@@ -29,7 +29,7 @@ def main():
 
         mean_problem_data = []
         for i in range(0, len(problem_data), SKIP_N):
-            mean_problem_data.append(int(np.mean(problem_data[i : i + SKIP_N])))
+            mean_problem_data.append(problem_data[i])
         mean_problem_data = np.array(mean_problem_data, dtype=np.int16)
         print(f"sum={np.sum(np.abs(problem_data))}")
 
@@ -42,9 +42,9 @@ def main():
             data = np.frombuffer(data, dtype=np.int16)
             print(f"open: {i}.wav")
 
-            mean_data: np.ndarray = []
+            mean_data = []
             for j in range(0, len(data), SKIP_N):
-                mean_data.append(int(np.mean(data[j : j + SKIP_N])))
+                mean_data.append(data[j])
             mean_data = np.array(mean_data, dtype=np.int16)
 
             for j in range(1, mean_problem_data.__len__() + mean_data.__len__(), 1):
