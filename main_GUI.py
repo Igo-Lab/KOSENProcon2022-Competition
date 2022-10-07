@@ -8,12 +8,48 @@ from tokenize import String, Token
 import numpy as np
 from functools import partial
 import os
+import ctypes as ct
+import numpy as np
 
 import call_test #仮でimportしている
 import relaySVlib
 
 TOKEN = relaySVlib.TOKEN
 SV_URL = relaySVlib.SV_URL
+problem = relaySVlib.problem
+srcs = relaySVlib.srcs
+len_problem = relaySVlib.len_problem
+lensrcs = relaySVlib.lensrcs
+
+def run_Logic(problem, srcs, len_problem, lensrcs):
+
+    ### C++の呼び出し準備 ###
+
+    cpp_resolver = ct.cdll.LoadLibrary("./CPP_LOGIC.so")
+
+    #C++関数の引数型
+    _INT16_PP = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags="C")
+    _INT16_P = ct.POINTER(ct.c_int16)
+    _INT32_PP = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags="C")
+    _INT32_P = ct.POINTER(ct.c_int32)
+
+    #メインロジック関数インスタンス
+    logic_resolver = cpp_resolver.resolver
+
+    #C++関数の引数・戻り値定義
+    cpp_resolver.restype = None
+    cpp_resolver.argtypes = (_INT16_P, _INT16_PP, ct.c_int32, _INT32_P, _INT32_PP)
+
+    #srcのアドレスの二次元配列作成・resultのアドレスの二次元配列作成
+    srcs_PP = (srcs.__array_interface__["data"][0] + np.arange(srcs.shape[0]) * srcs.strides[0]).astype(np.uintp)
+    results = np.zeros((5, 2), dtype=np.int32)
+    results_PP = (results.__array_interface__["data"][0] + np.arange(results.shape[0]) * results.strides[0]).astype(np.uintp)
+
+
+    #メインロジックに丸投げ
+    logic_resolver(problem.ct.data_as(_INT16_P),srcs_PP,len_problem,lensrcs,results_PP)
+
+    return results
 
 if __name__ == '__main__':
 
@@ -88,6 +124,7 @@ if __name__ == '__main__':
             os.remove('pathlist')
         else:
             pass
+
         clear_path_list()
         typ = [('All Files','*')]
         defdir = './procon22-wav/'
@@ -119,19 +156,9 @@ if __name__ == '__main__':
     #解析ロジックの呼び出し
     def call_main_prog():
         print('解析を開始')
-            #pathlistにメモした内容を再度読み込み＆解析ロジックにパスを渡す
-        try:
-            with open('pathlist','r',encoding='utf-8') as r:
-                filepathlst = r.readlines()
-                print(filepathlst)
-                r.close()
 
-        except FileNotFoundError:
-            messagebox.showerror('ファイルパス参照エラー','pathlistからパスを読み取れませんでした')
-        prb_data , sum_list = call_test.test(filepathlst)
+        resultofLogic = run_Logic(problem, srcs, len_problem, lensrcs)
         print('完了')
-
-        send_ans(prb_data,sum_list)
 
     #判別結果を送信
     def post_ans(answer):
