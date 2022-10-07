@@ -5,6 +5,8 @@ LOAD_BASE_NUM = 88
 API_TOKEN = r"xxxxxxxxxxxx"
 API_URL = r"http://localhost:12345"
 TIMEOUT = 3.0
-LOG_LEVEL = "INFO"
+LOG_LEVEL = "DEBUG"
 
 EXAMPLE_PROBLEM = r"samples/original/problem4.wav"
+
+FILTER_THRESHOLD = 1.0

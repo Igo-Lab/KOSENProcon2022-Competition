@@ -5,12 +5,15 @@ import sys
 import time
 import wave
 from calendar import c
+from re import M
 
 import numpy as np
 import numpy.typing as npt
 import soxr
 from loguru import logger
 from requests import exceptions
+
+from kosenprocon.libs.constant import FILTER_THRESHOLD
 
 from . import libs
 
@@ -31,7 +34,7 @@ class App:
     problems_data: list[libs.ProblemData] = []
 
     answer: set[int]
-    srcs_mask: set[int]  # CUDA処理側に処理しない元データ情報を渡す
+    srcs_mask: set[int] = set()  # CUDA処理側に処理しない元データ情報を渡す
 
     @classmethod
     def app(cls):
@@ -68,6 +71,10 @@ class App:
                     # 末尾に問題情報を追加
                     cls.problems_data.append(p)
 
+                    # 各種初期化
+                    cls.answer = set()
+                    cls.srcs_mask = set()
+
                     # 本当は時刻チェックでwaitかける処理が必要だが・・・
 
                     # chunkファイルを取り寄せる
@@ -93,6 +100,7 @@ class App:
                             cls.compressed_chunk,
                             cls.compressed_srcs,
                             cls.compressed_srcs_len,
+                            cls.srcs_mask,
                         )
 
                         cls.choose_contained(sums, cls.answer)
@@ -102,7 +110,7 @@ class App:
                             break
 
                         # 次のCUDA処理のためのマスクを作成
-                        cls.makemask()
+                        cls.makemask(cls.srcs_mask)
 
                     # F5アタックにならないようにリミッタ
                     time.sleep(2)
@@ -159,11 +167,18 @@ class App:
         )
         return rs
 
+    # GPUにリサンプリングした読みデータを転送する．
+    # 問題chunkデータは逐次転送することにする．
+    @classmethod
+    def gpu_memcpy():
+        pass
+
     # chunk: 解きたい問題データ
     # srcs: 成形された元データ集
     # src_lengths: 元データの本当の長さ。C側で利用される。
     # mask: 処理しないやつを渡す
-    # return: 解析結果（和）のリスト [0]には1.wavを元データとして比較したときの最小時の和が入っている。
+    # return: 解析結果（和）のリスト [~][1]には1.wavを元データとして比較したときの最小時の和が入っている。
+    #         maskで指定されたものにはUINT_MAXが入る
     @classmethod
     def get_sums(
         cls,
@@ -178,13 +193,23 @@ class App:
         pass
 
     @classmethod
-    def choose_contained(sums: npt.NDArray[np.int32], answer: set[int]) -> list[int]:
-        pass
+    def choose_contained(
+        sums: npt.NDArray[np.int32],
+        pd: libs.ProblemData,
+        mask: set[int],
+        answer: set[int],
+    ):
+        filtered = sums[pd.chunks - 1 : 88 - len(mask)][1]
+        target = sums[: pd.chunks][1]
+        std = np.std(filtered)
+        mean = np.mean(filtered)
+        zscored = (target - mean) / std
+        # 最後にanswerに追加して終了
+        for num, zvalue in zip(sums[0], zscored):
+            if zvalue > libs.FILTER_THRESHOLD:
+                answer.add(num)
 
-    # list中の重複しているもの(例:J01とE01は同時には出てこないのでJ01が指定されたとき両方除外する必要がある)を除外する。
-    @classmethod
-    def exclude_from_compressed_srcs(li: list[int]):
-        pass
+        logger.debug(f"Here is the extracted answers:\n {zscored})")
 
     @classmethod
     def set_compaction_rate(cls, rate: int):
@@ -195,6 +220,13 @@ class App:
             # reload
             cls.load_srcs(reload=True)
             cls.compressed_chunk = cls.compress(cls.raw_chunks, rate)
+
+    @classmethod
+    def makemask(answer: set[int], mask: set[int]):
+        for num in answer:
+            mask.add(num)
+            if num <= 44:
+                mask.add(num + 44)
 
     @classmethod
     def show_result(cls):
