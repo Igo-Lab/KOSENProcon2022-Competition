@@ -1,18 +1,28 @@
-int data(int *box,int a){
+#include <stdio.h>
+
+void data(int **box,int a){
   
-int sam;
+    int sam=0;
+
 
     for(int i = 0; i < 2; i++) {
-		for(int j = 0; j < 2; j++) {
+		for(int j = 0; j < 3; j++) {
 
-           sam+=*box+a;
+           sam+=box[i][j]; //a=1
 
-           box++;
-
+           printf("%d\n",sam);
+           printf("%d\n",box[i][j]);
+           printf("hello\n");
+           
         }
 
     }
 
-    printf("%d",sam);
+  
 
+}
+
+int main(){
+    printf("HELLOOOOFUIGFUIG");
+    
 }

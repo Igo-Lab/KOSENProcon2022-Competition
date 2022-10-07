@@ -1,14 +1,20 @@
 import ctypes
-
 import numpy as np
+from numpy import ctypeslib
 
-dp=ctypes.ndpointer(ctypes.c_int16)
 
-lib=np.cdll.LoadLibrary
+pp=ctypeslib.ndpointer(dtype=ctypes.c_int,ndim=1,flags="C")
 
-lib=ctypes.cdll.LoadLibrary("getbox.so")
+dp=ctypes.cdll.LoadLibrary("./test.so")
 
-post=np.array([1,2,3],[4,5,6],dtype=np.c_int16)
+call=dp.data
+call.restype=None
+call.argtypes=(pp,ctypes.c_int)
 
-post_pp=(post.hairetu["data"][0]+np)
+post=np.zeros((2,3),dtype=ctypes.c_int)
 
+post_pp=(post.__array_interface__["data"][0]+np.arange(post.shape[0]) * post.strides[0]).astype(ctypes.c_int)
+
+call(post_pp,1)
+
+print("hai")
