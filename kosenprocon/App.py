@@ -1,15 +1,10 @@
 import copy
-import ctypes
-import os
 import sys
 import time
 import wave
-from calendar import c
-from re import M
 
 import numpy as np
 import numpy.typing as npt
-import soxr
 from loguru import logger
 from requests import exceptions
 
@@ -21,7 +16,7 @@ from . import libs
 class App:
     # 2D
     compressed_srcs: npt.NDArray[np.int16]
-    compressed_srcs_len: npt.NDArray[np.int32]
+    compressed_srcs_len: npt.NDArray[np.uint32]
     raw_srcs: list[list[np.int16]]
     # 1D
     raw_chunks: list[tuple[int, list[int]]] = []
@@ -35,6 +30,11 @@ class App:
 
     answer: set[int]
     srcs_mask: set[int] = set()  # CUDA処理側に処理しない元データ情報を渡す
+
+    # gpuから帰ってくるresult
+    result_gpu: npt.NDArray[np.uint32] = np.array(
+        (libs.LOAD_BASE_NUM, 2), dtype=np.uint32
+    )
 
     @classmethod
     def app(cls):
@@ -140,15 +140,14 @@ class App:
 
         for src in cls.raw_srcs:
             rs = cls.compress(src, cls.compressing_rate)
-            rs_copy = rs.copy()  # soxlibからコピー
-            rs_copy.resize(
-                int(maxlen / cls.compressing_rate), refcheck=False
-            )  # 一番大きい長さに統一
-            compedarr.append(rs_copy)
             lenarr.append(len(rs))  # 元の長さを保存
+            rs.resize(int(maxlen / cls.compressing_rate), refcheck=False)  # 一番大きい長さに統一
+            compedarr.append(rs)
 
         cls.compressed_srcs = np.array(compedarr, dtype=np.int16)
-        cls.compressed_srcs_len = np.array(lenarr, dtype=np.int32)
+        cls.compressed_srcs_len = np.array(lenarr, dtype=np.uint32)
+
+        libs.memcpy_src2gpu(cls.compressed_srcs, cls.compressed_srcs_len)
         logger.info("Loading has been done")
 
     @classmethod
@@ -184,14 +183,14 @@ class App:
     def get_sums(
         cls,
         chunk: npt.NDArray[np.int16],
-        srcs: npt.NDArray[np.int16],
-        src_lengths: npt.NDArray[np.int32],
-        mask: npt.NDArray[np.int16],
+        mask: npt.NDArray[np.bool_],
     ) -> npt.NDArray[np.int32]:
         # TODO: cuda呼び出し
         logger.info("Start Processing on CUDA.")
-        logger.debug(f"problem chunk size: {chunk.shape}, srcs arr size()")
-        pass
+
+        libs.resolver(chunk, len(chunk), mask, cls.result_gpu)
+
+        return cls.result_gpu
 
     @classmethod
     def choose_contained(
@@ -200,7 +199,7 @@ class App:
         mask: set[int],
         answer: set[int],
     ):
-        filtered = sums[pd.chunks - 1 : 88 - len(mask)][1]
+        filtered = sums[pd.chunks - 1 : libs.LOAD_BASE_NUM - len(mask)][1]
         target = sums[: pd.chunks][1]
         std = np.std(filtered)
         mean = np.mean(filtered)

@@ -15,6 +15,7 @@ TARGET=$(BUILDDIR)/libresolver.so
 .PHONY: build
 build: $(TARGET) test
 
+
 $(TARGET): $(OBJS)
 	[ -d $(BUILDDIR) ] || mkdir $(BUILDDIR)
 	$(NVCC) $(NVCCFLAGS) $+ -o $@
@@ -32,10 +33,10 @@ clean:
 
 .PHONY: test
 test:
+	isort kosenprocon tests
+	black kosenprocon tests
 	pytest -sv tests
 
 .PHONY: run
 run: build
-	isort kosenprocon tests
-	black kosenprocon tests
 	python -m kosenprocon

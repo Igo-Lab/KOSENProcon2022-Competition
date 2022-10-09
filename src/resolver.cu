@@ -51,17 +51,9 @@ __global__ void diffSum(const int16_t *__restrict__ chunk, const int16_t *__rest
     sums[idx] = sum;
 }
 
-__attribute__((constructor)) void initgpu() {
-    for (auto i = 0; i < BASE_AUDIO_N; i++) {
-        cudaStreamCreate(&streams[i]);
-    }
-
-    isInit = true;
-}
-
 //とりあえず何も考えずsrcをコピーして解答領域は都度都度確保することに
 // TODO:動確したら直す
-void memcpy_src2gpu(const int16_t **srcs, const int32_t *lens) {
+void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
     if (!isInit) {
         std::cout << "Didn't be inited. Not processing." << std::endl;
         return;
@@ -78,7 +70,8 @@ void memcpy_src2gpu(const int16_t **srcs, const int32_t *lens) {
     cudaDeviceSynchronize();
 }
 
-void resolver(const int16_t *chunk, const int32_t chunk_len, uint32_t **result) {
+// 元読みデータはindex-0スタート．つまり0～87
+void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, uint32_t **result) {
     int16_t *chunk_d;
     dim3 block(BLOCK_N);
 
@@ -91,6 +84,10 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, uint32_t **result) 
     cudaMemcpy(chunk_d, chunk, sizeof(int16_t) * chunk_len, cudaMemcpyHostToDevice);
 
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
+        // もし処理が必要ないならスキップ
+        if (mask[i]) {
+            continue;
+        }
         //解答保存領域の確保
         cudaMallocAsync((void **)&sum_tmp[i], sizeof(uint32_t) * (chunk_len + srclens[i] - 2), streams[i]);
 
@@ -101,7 +98,14 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, uint32_t **result) 
     cudaDeviceSynchronize();
 
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
-        result[i][0] = i + 1;
+        // もし処理が必要ないならスキップ
+        if (mask[i]) {
+            result[i][0] = i;
+            result[i][1] = UINT32_MAX;
+            continue;
+        }
+
+        result[i][0] = i;
         result[i][1] = thrust::reduce(
             thrust::device,
             sum_tmp[i],
@@ -110,17 +114,30 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, uint32_t **result) 
             thrust::minimum<uint32_t>());
         cudaFreeAsync(sum_tmp[i], streams[i]);
     }
+    cudaDeviceSynchronize();
 
     std::sort((comp_pair *)result, (comp_pair *)result + BASE_AUDIO_N, [](const auto &a, const auto &b) { return a.second < b.second; });
 
     cudaFree(chunk_d);
-    cudaDeviceSynchronize();
 }
 
-__attribute__((destructor)) void deinitgpu() {
-    if (!isInit) return;
-    for (auto i = 0; i < BASE_AUDIO_N; i++) {
-        cudaStreamDestroy(streams[i]);
+// DLLのロードアンロードにフックしてる
+namespace {
+struct LoadFook {
+    LoadFook() {
+        for (auto i = 0; i < BASE_AUDIO_N; i++) {
+            cudaStreamCreate(&streams[i]);
+        }
+
+        isInit = true;
     }
-    isInit = false;
-}
+
+    ~LoadFook() {
+        if (!isInit) return;
+        for (auto i = 0; i < BASE_AUDIO_N; i++) {
+            cudaStreamDestroy(streams[i]);
+        }
+        isInit = false;
+    }
+} loadfook;
+}  // namespace
