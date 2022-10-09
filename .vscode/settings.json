@@ -86,5 +86,6 @@
         "xtr1common": "cpp",
         "xtree": "cpp"
     },
-    "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0 }"
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0 }",
+    "remote.WSL.debug": false
 }
