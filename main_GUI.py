@@ -159,6 +159,7 @@ if __name__ == '__main__':
 
         resultofLogic = run_Logic(problem, srcs, len_problem, lensrcs)
         print('完了')
+        print(resultofLogic)
 
     #判別結果を送信
     def post_ans(answer):
