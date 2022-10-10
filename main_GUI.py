@@ -6,9 +6,10 @@ from tkinter import messagebox
 from tkinter import filedialog
 from tokenize import String, Token
 import numpy as np
+import numpy.typing as npt
 from functools import partial
 import os
-import ctypes as ct
+from ctypes import *
 import numpy as np
 
 import call_test #仮でimportしている
@@ -16,29 +17,34 @@ import relaySVlib
 
 TOKEN = relaySVlib.TOKEN
 SV_URL = relaySVlib.SV_URL
-problem = relaySVlib.problem
+PROBLEM = relaySVlib.problem
 srcs = relaySVlib.srcs
 len_problem = relaySVlib.len_problem
 lensrcs = relaySVlib.lensrcs
 
-def run_Logic(problem, srcs, len_problem, lensrcs):
+def run_Logic(problem: npt.NDArray[np.int16], srcs: npt.NDArray[np.int16], len_problem, lensrcs: npt.NDArray[np.int32]):
+
+    print(problem)
+    print(srcs)
+    print(len_problem)
+    print(lensrcs)
 
     ### C++の呼び出し準備 ###
 
-    cpp_resolver = ct.cdll.LoadLibrary("./CPP_LOGIC.so")
+    cpp_resolver =cdll.LoadLibrary('./CPP_LOGIC.so')
 
     #C++関数の引数型
     _INT16_PP = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags="C")
-    _INT16_P = ct.POINTER(ct.c_int16)
+    _INT16_P = POINTER(c_int16)
     _INT32_PP = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags="C")
-    _INT32_P = ct.POINTER(ct.c_int32)
+    _INT32_P = POINTER(c_int32)
 
     #メインロジック関数インスタンス
     logic_resolver = cpp_resolver.resolver
 
     #C++関数の引数・戻り値定義
     cpp_resolver.restype = None
-    cpp_resolver.argtypes = (_INT16_P, _INT16_PP, ct.c_int32, _INT32_P, _INT32_PP)
+    cpp_resolver.argtypes = (_INT16_P, _INT16_PP, c_int32, _INT32_P, _INT32_PP)
 
     #srcのアドレスの二次元配列作成・resultのアドレスの二次元配列作成
     srcs_PP = (srcs.__array_interface__["data"][0] + np.arange(srcs.shape[0]) * srcs.strides[0]).astype(np.uintp)
@@ -47,9 +53,7 @@ def run_Logic(problem, srcs, len_problem, lensrcs):
 
 
     #メインロジックに丸投げ
-    logic_resolver(problem.ct.data_as(_INT16_P),srcs_PP,len_problem,lensrcs,results_PP)
-
-    return results
+    logic_resolver(problem.ctypes.data_as(_INT16_P),srcs_PP,len_problem,lensrcs,results_PP)
 
 if __name__ == '__main__':
 
@@ -157,7 +161,7 @@ if __name__ == '__main__':
     def call_main_prog():
         print('解析を開始')
 
-        resultofLogic = run_Logic(problem, srcs, len_problem, lensrcs)
+        resultofLogic = run_Logic(PROBLEM, srcs, len_problem, lensrcs)
         print('完了')
         print(resultofLogic)
 
