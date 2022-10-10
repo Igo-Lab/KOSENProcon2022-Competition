@@ -29,10 +29,10 @@ class App:
     problems_data: list[libs.ProblemData] = []
 
     answer: set[int]
-    srcs_mask: set[int] = set()  # CUDA処理側に処理しない元データ情報を渡す
+    srcs_mask: npt.NDArray[np.bool_]  # CUDA処理側に処理しない元データ情報を渡す
 
     # gpuから帰ってくるresult
-    result_gpu: npt.NDArray[np.uint32] = np.array(
+    result_gpu: npt.NDArray[np.uint32] = np.empty(
         (libs.LOAD_BASE_NUM, 2), dtype=np.uint32
     )
 
@@ -73,7 +73,7 @@ class App:
 
                     # 各種初期化
                     cls.answer = set()
-                    cls.srcs_mask = set()
+                    cls.srcs_mask = np.full(libs.LOAD_BASE_NUM, False, dtype=np.bool_)
 
                     # 本当は時刻チェックでwaitかける処理が必要だが・・・
 
@@ -98,12 +98,12 @@ class App:
 
                         sums = cls.get_sums(
                             cls.compressed_chunk,
-                            cls.compressed_srcs,
-                            cls.compressed_srcs_len,
                             cls.srcs_mask,
                         )
 
-                        cls.choose_contained(sums, cls.answer)
+                        cls.choose_contained(
+                            sums, cls.problems_data[-1], cls.srcs_mask, cls.answer
+                        )
 
                         # 結果によってbreakでfor抜ける
                         if len(cls.answer) * 2 >= cls.problems_data[-1].data:
@@ -185,7 +185,6 @@ class App:
         chunk: npt.NDArray[np.int16],
         mask: npt.NDArray[np.bool_],
     ) -> npt.NDArray[np.int32]:
-        # TODO: cuda呼び出し
         logger.info("Start Processing on CUDA.")
 
         libs.resolver(chunk, len(chunk), mask, cls.result_gpu)
@@ -194,12 +193,14 @@ class App:
 
     @classmethod
     def choose_contained(
-        sums: npt.NDArray[np.int32],
+        sums: npt.NDArray[np.uint32],
         pd: libs.ProblemData,
-        mask: set[int],
+        mask: npt.NDArray[np.bool_],
         answer: set[int],
     ):
-        filtered = sums[pd.chunks - 1 : libs.LOAD_BASE_NUM - len(mask)][1]
+        filtered = sums[
+            pd.chunks - 1 : libs.LOAD_BASE_NUM - np.count_nonzero(mask == True)
+        ][1]
         target = sums[: pd.chunks][1]
         std = np.std(filtered)
         mean = np.mean(filtered)
@@ -222,11 +223,11 @@ class App:
             cls.compressed_chunk = cls.compress(cls.raw_chunks, rate)
 
     @classmethod
-    def makemask(answer: set[int], mask: set[int]):
+    def makemask(answer: set[int], mask: npt.NDArray[np.bool_]):
         for num in answer:
-            mask.add(num)
-            if num <= 44:
-                mask.add(num + 44)
+            mask[num] = True
+            if num < 44:
+                mask[num + 44] = True
 
     @classmethod
     def show_result(cls):
