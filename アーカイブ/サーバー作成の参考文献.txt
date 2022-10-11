@@ -1,0 +1,1 @@
+https://note.nkmk.me/python-urllib-parse-query-string/
