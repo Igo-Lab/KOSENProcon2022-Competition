@@ -61,6 +61,12 @@ __global__ void diffSum(const int16_t *__restrict__ chunk, const int16_t *__rest
     sums[idx] = sum;
 }
 
+__global__ void printest(int16_t *arr, uint32_t len){
+    for(auto i=0;i<len;i++){
+        printf("%d\n", arr[i]);
+    }
+}
+
 //とりあえず何も考えずsrcをコピーして解答領域は都度都度確保することに
 // TODO:動確したら直す
 void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
@@ -77,6 +83,8 @@ void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
 
         srclens[i] = lens[i];
     }
+
+    printest<<<1, 1>>>(srcAudios[0], srclens[0]);
     srcLoaded = true;
 }
 

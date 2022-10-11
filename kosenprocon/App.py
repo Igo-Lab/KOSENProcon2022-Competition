@@ -139,8 +139,14 @@ class App:
         compedarr = []
         lenarr = []
 
+        first = True
         for src in cls.raw_srcs:
             rs = cls.compress(src, cls.compressing_rate)
+
+            if first:
+                print(rs)
+                first = False
+
             lenarr.append(len(rs))  # 元の長さを保存
             rs.resize(
                 math.floor(maxlen / cls.compressing_rate), refcheck=False

@@ -290,31 +290,6 @@
       "responseMode": null
     },
     {
-      "uuid": "27723f0f-64c1-44ec-b533-480517dbddc9",
-      "documentation": "",
-      "method": "get",
-      "endpoint": "problem/chunks/problem3_a.wav",
-      "responses": [
-        {
-          "uuid": "cb477018-a8b9-4270-880e-b1b76482491c",
-          "body": "{}",
-          "latency": 0,
-          "statusCode": 200,
-          "label": "",
-          "headers": [],
-          "filePath": "C:\\Users\\takei\\Documents\\KOSENProcon\\dev\\samples\\sample_Q_202205\\sample_Q_E03\\problem3.wav",
-          "sendFileAsBody": false,
-          "rules": [],
-          "rulesOperator": "OR",
-          "disableTemplating": false,
-          "fallbackTo404": false,
-          "default": true
-        }
-      ],
-      "enabled": true,
-      "responseMode": null
-    },
-    {
       "uuid": "bec6e495-bcc6-47ca-8408-18714bd0a7a9",
       "documentation": "Path supports various patterns",
       "method": "post",
