@@ -1,4 +1,5 @@
 import copy
+import math
 import sys
 import time
 import wave
@@ -141,7 +142,9 @@ class App:
         for src in cls.raw_srcs:
             rs = cls.compress(src, cls.compressing_rate)
             lenarr.append(len(rs))  # 元の長さを保存
-            rs.resize(int(maxlen / cls.compressing_rate), refcheck=False)  # 一番大きい長さに統一
+            rs.resize(
+                math.floor(maxlen / cls.compressing_rate), refcheck=False
+            )  # 一番大きい長さに統一
             compedarr.append(rs)
 
         cls.compressed_srcs = np.array(compedarr, dtype=np.int16)
@@ -158,13 +161,14 @@ class App:
             logger.warning("This src is empty. Check around.")
             raise ValueError
 
-        logger.debug(f"Compressing... {len(src)}->{int(len(src)/rate)}")
+        rs = np.array(src[::rate], dtype=np.int16)
+        logger.debug(f"Compressing... {len(src)}->{len(rs)}")
         # rs = soxr.resample(
         #     src,
         #     libs.SRC_SAMPLE_RATE,
         #     int(libs.SRC_SAMPLE_RATE / cls.compressing_rate),
         # )
-        rs = np.array(src[::rate], dtype=np.int16)
+
         return rs
 
     # GPUにリサンプリングした読みデータを転送する．
