@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include "CPP_LOGIC_h.h"
 
 void kass(int32_t **a){
     int i,j;
