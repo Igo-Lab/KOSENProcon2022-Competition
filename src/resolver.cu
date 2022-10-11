@@ -133,7 +133,7 @@ void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, 
         }
 
         if(i == 0){
-            argtest<<<1, 1>>>(chunk_d, srcAudios[i], thrust::raw_pointer_cast(sum_tmp[i].data()), chunk_len, srclens[i]);
+            argtest<<<1, 1>>>(chunk_d, srcAudios[i], thrust::raw_pointer_cast(sum_tmp[0].data()), chunk_len, srclens[0]);
         }
 
         dim3 grid(((chunk_len + srclens[i] - 2) + block.x - 1) / block.x);

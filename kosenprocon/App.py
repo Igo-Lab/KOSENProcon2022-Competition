@@ -97,6 +97,7 @@ class App:
                             cls.compressing_rate,
                         )
 
+                        print(cls.compressed_chunk)
                         sums = cls.get_sums(
                             cls.compressed_chunk,
                             cls.srcs_mask,
