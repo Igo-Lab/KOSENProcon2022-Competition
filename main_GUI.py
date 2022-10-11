@@ -16,13 +16,13 @@ import call_test #仮でimportしている
 import relaySVlib
 
 TOKEN = relaySVlib.TOKEN
-SV_URL = relaySVlib.SV_URL
-PROBLEM = relaySVlib.problem
+SV_URL =relaySVlib.SV_URL
+PROBLEM =relaySVlib.problem
 srcs = relaySVlib.srcs
 len_problem = relaySVlib.len_problem
 lensrcs = relaySVlib.lensrcs
 
-def run_Logic(problem: npt.NDArray[np.int16], srcs: npt.NDArray[np.int16], len_problem, lensrcs: npt.NDArray[np.int32]):
+def run_Logic(problem, srcs, len_problem, lensrcs):
 
     print(problem)
     print(srcs)
@@ -43,8 +43,8 @@ def run_Logic(problem: npt.NDArray[np.int16], srcs: npt.NDArray[np.int16], len_p
     logic_resolver = cpp_resolver.resolver
 
     #C++関数の引数・戻り値定義
-    cpp_resolver.restype = None
-    cpp_resolver.argtypes = (_INT16_P, _INT16_PP, c_int32, _INT32_P, _INT32_PP)
+    logic_resolver.restype = None
+    logic_resolver.argtypes = (_INT16_P, _INT16_PP, c_int32, _INT32_P, _INT32_PP)
 
     #srcのアドレスの二次元配列作成・resultのアドレスの二次元配列作成
     srcs_PP = (srcs.__array_interface__["data"][0] + np.arange(srcs.shape[0]) * srcs.strides[0]).astype(np.uintp)
@@ -53,7 +53,9 @@ def run_Logic(problem: npt.NDArray[np.int16], srcs: npt.NDArray[np.int16], len_p
 
 
     #メインロジックに丸投げ
-    logic_resolver(problem.ctypes.data_as(_INT16_P),srcs_PP,len_problem,lensrcs,results_PP)
+    logic_resolver(problem.ctypes.data_as(_INT16_P),srcs_PP,len_problem,lensrcs.ctypes.data_as(_INT32_P),results_PP)
+
+    return results
 
 if __name__ == '__main__':
 
@@ -106,7 +108,7 @@ if __name__ == '__main__':
 
     #分割データを取得
     def get_prob_data(hmd):
-        relaySVlib.GETrequest_problem()
+
         print('問題データを取得')
         print('分割データ数:'+ hmd.get())
         #処理

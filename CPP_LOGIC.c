@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <stdint.h>
 
-int kass(int **a){
+void kass(int32_t **a){
     int i,j;
     int ss = 1;
 
@@ -14,7 +15,7 @@ int kass(int **a){
     }
 }
 
-void resolver(int *problem,int **src, int problem_len, int *src_length, int ** result){
+void resolver(int16_t *problem,int16_t **src, int32_t problem_len, int32_t *src_length, int32_t ** result){
     for(int i=0;i<5;i++){
         printf("problemの中身\n");
         printf("%d\n",problem[i]);

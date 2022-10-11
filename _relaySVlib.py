@@ -1,4 +1,4 @@
-from ctypes import c_int, c_int16,c_int32
+from ctypes import c_int, c_int16, c_int32
 import tkinter as tk
 from tkinter import messagebox
 import requests
@@ -23,7 +23,7 @@ else:
 #problem = np.random.rand(5).astype(dtype=np.int16)
 problem = np.full(5,5).astype(dtype=np.int16)
 print(problem)
-srcs = np.full((5,5), 88).astype(dtype=np.int16)
+srcs = np.full(5, 5).astype(dtype=np.int16)
 print(srcs)
 len_problem = 5
 lensrcs = np.full(5, 5, dtype=np.int32)
