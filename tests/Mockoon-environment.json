@@ -224,7 +224,7 @@
           "label": "",
           "headers": [],
           "filePath": "C:\\Users\\takei\\Documents\\KOSENProcon\\dev\\samples\\sample_Q_202205\\sample_Q_E03\\problem1.wav",
-          "sendFileAsBody": false,
+          "sendFileAsBody": true,
           "rules": [
             {
               "target": "params",
@@ -247,7 +247,7 @@
           "label": "",
           "headers": [],
           "filePath": "C:\\Users\\takei\\Documents\\KOSENProcon\\dev\\samples\\sample_Q_202205\\sample_Q_E03\\problem2.wav",
-          "sendFileAsBody": false,
+          "sendFileAsBody": true,
           "rules": [
             {
               "target": "params",
@@ -270,7 +270,7 @@
           "label": "",
           "headers": [],
           "filePath": "C:\\Users\\takei\\Documents\\KOSENProcon\\dev\\samples\\sample_Q_202205\\sample_Q_E03\\problem3.wav",
-          "sendFileAsBody": false,
+          "sendFileAsBody": true,
           "rules": [
             {
               "target": "params",

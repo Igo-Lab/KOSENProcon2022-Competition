@@ -164,7 +164,7 @@ class App:
         #     libs.SRC_SAMPLE_RATE,
         #     int(libs.SRC_SAMPLE_RATE / cls.compressing_rate),
         # )
-        rs = np.array(src[::4], dtype=np.int16)
+        rs = np.array(src[::rate], dtype=np.int16)
         return rs
 
     # GPUにリサンプリングした読みデータを転送する．

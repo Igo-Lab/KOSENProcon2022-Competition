@@ -77,20 +77,6 @@ void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
 
         srclens[i] = lens[i];
     }
-
-    // {
-    //     // debug
-    //     int16_t *tmparr;
-    //     tmparr = (int16_t *)malloc(sizeof(int16_t) * lens[0]);
-    //     cudaMemcpy(tmparr, srcAudios[0], sizeof(int16_t) * lens[0], cudaMemcpyDeviceToHost);
-    //     for (auto i = 0; i < lens[0]; i++) {
-    //         if (tmparr[i] != srcs[0][i]) {
-    //             std::cout << "Error" << std::endl;
-    //         }
-    //     }
-    //     std::cout << "pass" << std::endl;
-    //     free(tmparr);
-    // }
     srcLoaded = true;
 }
 
@@ -120,8 +106,6 @@ void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, 
         if (mask[i]) {
             continue;
         }
-        //解答保存領域の確保
-        // new (sum_tmp + i) thrust::device_vector<uint32_t>((chunk_len + srclens[i] - 2));
 
         dim3 grid(((chunk_len + srclens[i] - 2) + block.x - 1) / block.x);
         diffSum<<<grid, block, 0, streams[i]>>>(chunk_d, srcAudios[i], thrust::raw_pointer_cast(sum_tmp[i].data()), chunk_len, srclens[i]);
@@ -137,7 +121,6 @@ void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, 
             continue;
         }
         std::cout << "dev pass." << i << std::endl;
-        std::cout << sum_tmp[i][0] << std::endl;
 
         result[i][0] = i;
         result[i][1] = thrust::reduce(
