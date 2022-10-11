@@ -71,13 +71,12 @@ void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
 
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
         //メモリ確保
-        CUDA_SAFE_CALL(cudaMallocAsync((void **)&(srcAudios[i]), sizeof(int16_t) * lens[i], streams[i]));
+        CUDA_SAFE_CALL(cudaMalloc((void **)&(srcAudios[i]), sizeof(int16_t) * lens[i]));
         // 読みデータのコピー
-        CUDA_SAFE_CALL(cudaMemcpyAsync(srcAudios[i], srcs[i], sizeof(int16_t) * lens[i], cudaMemcpyHostToDevice, streams[i]));
+        CUDA_SAFE_CALL(cudaMemcpy(srcAudios[i], srcs[i], sizeof(int16_t) * lens[i], cudaMemcpyHostToDevice));
 
         srclens[i] = lens[i];
     }
-    cudaDeviceSynchronize();
 
     // {
     //     // debug
