@@ -67,6 +67,24 @@ __global__ void printest(int16_t *arr, uint32_t len){
     }
 }
 
+__global__ void argtest(const int16_t *__restrict__ chunk, const int16_t *__restrict__ src, uint32_t *sums, const uint32_t chunkLen, const uint32_t sourceLen){
+    printf("chlen: %u, srclen: %u\n", chunkLen, sourceLen);
+
+    for(auto i = 0;i<10; i++){
+        for (auto j= 0;j<10;j++){
+            printf("%d", chunk[i*10+j]);
+        }
+        printf("\n");
+    }
+
+    for(auto i = 0;i<10; i++){
+        for (auto j= 0;j<10;j++){
+            printf("%d", src[i*10+j]);
+        }
+        printf("\n");
+    }
+}
+
 //とりあえず何も考えずsrcをコピーして解答領域は都度都度確保することに
 // TODO:動確したら直す
 void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
@@ -84,7 +102,6 @@ void memcpy_src2gpu(const int16_t **srcs, const uint32_t *lens) {
         srclens[i] = lens[i];
     }
 
-    printest<<<1, 1>>>(srcAudios[0], srclens[0]);
     srcLoaded = true;
 }
 
@@ -113,6 +130,10 @@ void resolver(const int16_t *chunk, const uint32_t chunk_len, const bool *mask, 
         // もし処理が必要ないならスキップ
         if (mask[i]) {
             continue;
+        }
+
+        if(i == 0){
+            argtest<<<1, 1>>>(chunk_d, srcAudios[i], thrust::raw_pointer_cast(sum_tmp[i].data()), chunk_len, srclens[i]);
         }
 
         dim3 grid(((chunk_len + srclens[i] - 2) + block.x - 1) / block.x);
