@@ -45,8 +45,8 @@ def run_Logic(problem: npt.NDArray[np.int16], srcs: npt.NDArray[np.int16], len_p
     logic_resolver = cpp_resolver.resolver
 
     #C++関数の引数・戻り値定義
-    cpp_resolver.restype = None
-    cpp_resolver.argtypes = (_INT16_P, _INT16_PP, c_int32, _INT32_P, _INT32_PP)
+    logic_resolver.restype = None
+    logic_resolver.argtypes = (_INT16_P, _INT16_PP, c_int32, _INT32_P, _INT32_PP)
 
     #srcのアドレスの二次元配列作成・resultのアドレスの二次元配列作成
     srcs_PP = (srcs.__array_interface__["data"][0] + np.arange(srcs.shape[0]) * srcs.strides[0]).astype(np.uintp)
