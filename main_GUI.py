@@ -59,13 +59,35 @@ def run_Logic(problem: npt.NDArray[np.int16], srcs: npt.NDArray[np.int16], len_p
 
 if __name__ == '__main__':
 
-    window_title = '音声解析の鬼(仮) (GUIテスト)'
+    window_title = '春光台にそそりたつ！！'
 
-    #回答送信の確認画面
-    def send_ans(data,list):
+    #回答をなおす画面
+    def retype_answer_frm():
+        win = tk.Tk()
+
+        win.geometry('700x350')
+        win.title('回答を修正')
+        win.configure(bg="black")
+
+        #修正入力欄
+        box_name2 = tk.Label(win,font=("normal",20),text='修正を入力',bg="black",fg="#ffffff")
+        box_name2.place(x=0,y=10)
+        box_fix = ScrolledText(win,font=("normal",16),height=5,width=50)
+        box_fix.place(x=40,y=60)
+
+        #送信ボタン
+        send = tk.Button(win,background='#bbff99',text='修正を送信',font=("normal",20,"bold"),command=partial(send_ans_fixed,box_fix))
+        send.place(x=50,y=250)
+
+        #送信ボタン(修正なし)
+        #send = tk.Button(win,background='#ff4444',text='修正せずに送信',font=("normal",20,"bold"))
+        #send.place(x=450,y=250)
+
+    #けっかはっぴょー
+    def result_viewer(data,list):
         wid = tk.Tk()
 
-        wid.geometry('700x900')
+        wid.geometry('700x520')
         wid.title('回答送信確認画面')
         wid.configure(bg="black")
 
@@ -77,31 +99,25 @@ if __name__ == '__main__':
         box_ans.place(x=40,y=60)
         box_ans.insert(tk.END,str(data))
 
-        #修正入力側
-        box_name2 = tk.Label(wid,font=("normal",20),text='修正を入力',bg="black",fg="#ffffff")
-        box_name2.place(x=0,y=470)
-        box_fix = ScrolledText(wid,font=("normal",16),height=5,width=50)
-        box_fix.place(x=40,y=560)
-
         #差分合計値リストの表示
         list_name1 = tk.Label(wid,font=("normal",20),text='差分合計値リスト',bg='black',fg='#ffffff')
         list_name1.place(x=0,y=230)
         sum_list = ScrolledText(wid,font=("normal",16),height=4,width=50)
-        sum_list.place(x=40,y=323)
+        sum_list.place(x=40,y=275)
         sum_list.insert(tk.END,str(list))
 
         #送信ボタン
-        send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正せずに回答を送信',bg="#ff0044",command=partial(post_ans,data))
-        send_btn.place(x=140,y=710)
+        send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正せずに回答を送信',bg="#ff4444",command=partial(send_ans_default,box_ans))
+        send_btn.place(x=350,y=420)
 
 
-        #修正した回答の送信ボタン
-        fixed_send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正した内容を送信',bg="#00dd44",command=partial(post_fix_ans,box_fix))
-        fixed_send_btn.place(x=150,y=790)
+        #修正したいってときのボタン
+        fixed_send_btn = tk.Button(wid,font=("normal",20,"bold"),text='回答を修正',bg="#bbff99",command=retype_answer_frm)
+        fixed_send_btn.place(x=50,y=420)
         
         #画面下の注意書き
         attention_label = tk.Label(wid,font=("normal",10,"bold"),text='確認ダイアログは出ません!!',bg='red',fg='#ffffff')
-        attention_label.place(x=190,y=860)
+        attention_label.place(x=360,y=480)
 
     #メイン画面に取得したファイル名を表示
     def print_filenames(tko,names):
@@ -167,24 +183,24 @@ if __name__ == '__main__':
         #resultofLogic = run_Logic(PROBLEM, srcs, len_problem, lensrcs)
         print('完了')
         #print(resultofLogic)
-        send_ans('test','test')
+        result_viewer('test','test')
 
-    #判別結果を送信
-    def post_ans(answer):
-        print('自動判別の回答を送信した')
-        print(answer)
+    #回答送信(修正加えたやつを送る)
+    def send_ans_fixed(textbox):
+        send_data = textbox.get("1.0", "end-1c")
+        print(send_data)
 
-    #修正した回答のデータを送信
-    def post_fix_ans(func):
-        print('修正済みの回答を送信した')
-        print(func.get())
+    #回答送信(デフォルト)
+    def send_ans_default(textbox):
+        send_data = textbox.get("1.0", "end-1c")
+        print(send_data)
 
     #トークンとURL確認ウィンドウ
     def token_confirm_func():
         msg = TOKEN + '\n' + SV_URL
         messagebox.showinfo("弊チームのトークンとサーバURLの確認",msg)
 
-    #メインウィンドウの設定
+#### メインウィンドウの設定 ####
     frm = tk.Tk()
 
     frm.geometry('600x500')
@@ -199,7 +215,7 @@ if __name__ == '__main__':
     how_many_data = tk.Label(frm,font=("normal",20),text='分割データ取得数の入力',foreground='#ffffff',background='#000000')
     how_many_data.place(x=0,y=140)
     how_many_data_box = tk.Entry(frm,width=3,justify="center", font=("HGP行書体",20))
-    how_many_data_box.place(x=300,y=140)
+    how_many_data_box.place(x=320,y=140)
 
     #取得したデータのファイル名一覧表示
         #エラー回避のための配列定義
@@ -226,7 +242,7 @@ if __name__ == '__main__':
     token_confirm.place(x=0,y=70)
         #トークン・URL確認ボタン
     token_confirm_btn = tk.Button(frm,font=("normal",16),background='#00dd44',text='確認',command=token_confirm_func)
-    token_confirm_btn.place(x=330,y=70)
+    token_confirm_btn.place(x=350,y=70)
 
     #データ取得ボタンの定義と配置
     get_prob_data_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='問題を取得',command=partial(get_prob_data,how_many_data_box))
@@ -237,7 +253,7 @@ if __name__ == '__main__':
     get_prob_data_local_btn.place(x=10,y=360)
 
     #解析開始ボタンの定義と配置
-    start_main_program_btn = tk.Button(frm,background='#ff0044',text='解析開始!!',font=("normal",20,"bold"),command=call_main_prog)
+    start_main_program_btn = tk.Button(frm,background='#ff4444',text='解析開始!!',font=("normal",20,"bold"),command=call_main_prog)
     start_main_program_btn.place(x=200,y=430)
 
     frm.mainloop()
