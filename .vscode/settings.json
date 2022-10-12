@@ -98,7 +98,10 @@
         "string_view": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "complex": "cpp",
+        "filesystem": "cpp",
+        "cinttypes": "cpp"
     },
     "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0 }"
 }

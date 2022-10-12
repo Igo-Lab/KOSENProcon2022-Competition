@@ -1,30 +1,28 @@
-/******************************************************************************
-
-                              Online C++ Compiler.
-               Code, Compile, Run and Debug C++ program online.
-Write your code in this editor and press "Run" button to compile and execute it.
-
-*******************************************************************************/
-
-#include <iostream>
+// Online C++ compiler to run C++ program online
 #include <algorithm>
+#include <iostream>
 
-using namespace std;
-using comp_pair = std::pair<uint32_t, uint32_t>;
+typedef struct {
+    uint32_t index;
+    uint32_t value;
+} pair;
 
-void test(uint32_t **a){
-    std::sort((comp_pair *)a, (comp_pair *)a + 3, [](const auto &a, const auto &b) { return a.second < b.second; });
-    for(auto i = 0;i < 3;i++){
-        printf("%d %d\n",a[i][0],a[i][1]);
+void printsorted(uint32_t **arr) {
+    std::sort((pair *)arr, ((pair *)arr) + 3, [](const auto &a, const auto &b) { return a.value < b.value; });
+
+    pair *tmpp = (pair *)arr;
+
+    for (auto i = 0; i < 4; i++) {
+        printf("%u %u\n", tmpp[i].index, tmpp[i].value);
     }
 }
 
-int main()
-{
-    uint32_t a[][2] = {{1,2},{2,100},{3,300}};
-    std::sort((comp_pair *)a, (comp_pair *)a + 3, [](const auto &a, const auto &b) { return a.second < b.second; });
-    for(auto i = 0;i < 3;i++){
-        printf("%d %d\n",a[i][0],a[i][1]);
-    }
+int main() {
+    // Write C++ code here
+    uint32_t a[][2] = {{1, 1000}, {2, 500}, {3, 400}, {4, 600}};
+    uint32_t **b = (uint32_t **)a;
+    printsorted(b);
+    std::cout << "Hello world!";
+
     return 0;
 }
