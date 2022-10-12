@@ -83,6 +83,7 @@ class App:
                     for _ in range(cls.problems_data[-1].chunks):
                         cls.raw_chunks.append(libs.get_chunk(cls.raw_chunks))
                         # 1こずつ取り出し、つなげられそうならつなげる
+                        # TODO: HEAD, TAILのINDEXをつなげた後更新しなければ・・・
                         tmp_joined_chunk = copy.copy(cls.raw_chunks[-1][1])
                         for pre_chunk in cls.raw_chunks[:-1]:
                             # 後ろに連番になってないか。raw_chunks={(1, []), (3, []), (2, [])})のとき、[1]にヒットする。
@@ -103,20 +104,22 @@ class App:
                             cls.srcs_mask,
                         )
 
+                        sums = sums[np.argsort(sums[:, 1])]
+
                         cls.choose_contained(
                             sums, cls.problems_data[-1], cls.srcs_mask, cls.answer
                         )
 
                         # 結果によってbreakでfor抜ける
-                        if len(cls.answer) * 2 >= cls.problems_data[-1].data:
+                        if len(cls.answer) >= cls.problems_data[-1].data:
                             break
 
                         # 次のCUDA処理のためのマスクを作成
                         cls.makemask(cls.srcs_mask)
 
                     # F5アタックにならないようにリミッタ
-                    time.sleep(2)
-                time.sleep(2)
+                    libs.send_answer(cls.problems_data[-1].id, cls.answer)
+                    time.sleep(5)
             except exceptions.RequestException as e:
                 logger.warning(
                     "Can't retrieve a problem. May be the server is over loaded or the match isn't started."
@@ -195,7 +198,7 @@ class App:
         cls,
         chunk: npt.NDArray[np.int16],
         mask: npt.NDArray[np.bool_],
-    ) -> npt.NDArray[np.int32]:
+    ) -> npt.NDArray[np.uint32]:
         logger.info("Start Processing on CUDA.")
 
         libs.resolver(chunk, len(chunk), mask, cls.result_gpu)
@@ -204,24 +207,27 @@ class App:
 
     @classmethod
     def choose_contained(
+        cls,
         sums: npt.NDArray[np.uint32],
         pd: libs.ProblemData,
         mask: npt.NDArray[np.bool_],
         answer: set[int],
     ):
-        filtered = sums[
-            pd.chunks - 1 : libs.LOAD_BASE_NUM - np.count_nonzero(mask == True)
-        ][1]
-        target = sums[: pd.chunks][1]
-        std = np.std(filtered)
-        mean = np.mean(filtered)
-        zscored = (target - mean) / std
+        filtered = sums[pd.data : libs.LOAD_BASE_NUM - np.count_nonzero(mask == True)]
+        target = sums[: pd.data]
+        std = np.std(filtered[:, 1])
+        mean = np.mean(filtered[:, 1])
+
+        zscored = (target[:, 1] - mean) / std
+
+        # ztest = (filtered[:, 1] - mean) / std
+
         # 最後にanswerに追加して終了
-        for num, zvalue in zip(sums[0], zscored):
-            if zvalue > libs.FILTER_THRESHOLD:
+        for num, zvalue in zip(target[:, 0], zscored):
+            if abs(zvalue) > libs.FILTER_THRESHOLD:
                 answer.add(num)
 
-        logger.debug(f"Here is the extracted answers:\n {zscored})")
+        logger.debug(f"Here is the extracted answers: {zscored}\n")
 
     @classmethod
     def set_compaction_rate(cls, rate: int):
@@ -237,7 +243,7 @@ class App:
     def makemask(answer: set[int], mask: npt.NDArray[np.bool_]):
         for num in answer:
             mask[num] = True
-            if num < 44:
+            if num <= 44:
                 mask[num + 44] = True
 
     @classmethod

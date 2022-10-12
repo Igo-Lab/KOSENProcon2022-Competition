@@ -20,11 +20,6 @@
 constexpr size_t BASE_AUDIO_N = 88;
 constexpr size_t BLOCK_N = 256;
 
-typedef struct {
-    uint32_t index;
-    uint32_t value;
-} pair;
-
 int16_t *srcAudios[BASE_AUDIO_N];  // gpuのメモリポインタ．マルチスレッドで呼び出すときに問題になりそう．
 int32_t srclens[BASE_AUDIO_N];
 cudaStream_t streams[BASE_AUDIO_N];
@@ -115,8 +110,6 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, u
     thrust::device_vector<uint32_t> sum_tmp[BASE_AUDIO_N];
     dim3 block(BLOCK_N);
 
-    pair *result = (pair *)result_raw;
-
     if (!isInit) {
         std::cout << "Didn't be initialized. Not processing." << std::endl;
         return;
@@ -144,8 +137,8 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, u
         // }
 
         dim3 grid(((chunk_len + srclens[i] - 2) + block.x - 1) / block.x);
-        printf("srcAudio ID: %d, Block: %d, Grid: %d\n", i + 1, block.x, grid.x);
-        printf("sums_d size: %d, %d\n", sum_tmp[i].size(), grid.x * block.x);
+        // printf("srcAudio ID: %d, Block: %d, Grid: %d\n", i + 1, block.x, grid.x);
+        // printf("sums_d size: %d, %d\n", sum_tmp[i].size(), grid.x * block.x);
         diffSum<<<grid, block, 0, streams[i]>>>(chunk_d, srcAudios[i], thrust::raw_pointer_cast(sum_tmp[i].data()), chunk_len, srclens[i]);
     }
 
@@ -154,22 +147,14 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, u
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
         // もし処理が必要ないならスキップ
         if (mask[i]) {
-            result[i].index = i;
-            result[i].value = UINT32_MAX;
+            result_raw[i][0] = i;
+            result_raw[i][1] = UINT32_MAX;
             continue;
         }
         std::cout << "dev pass." << i << std::endl;
 
-        // uint32_t itmp = i;
-        // uint32_t redtmp = thrust::reduce(
-        //     thrust::device,
-        //     sum_tmp[i].begin(),
-        //     sum_tmp[i].end(),
-        //     UINT32_MAX,
-        //     thrust::minimum<uint32_t>());
-
-        result[i].index = i;
-        result[i].value = thrust::reduce(
+        result_raw[i][0] = i + 1;
+        result_raw[i][1] = thrust::reduce(
             thrust::device,
             sum_tmp[i].begin(),
             sum_tmp[i].end(),
@@ -179,11 +164,10 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, u
 
     cudaDeviceSynchronize();
 
-    std::sort(result, result + BASE_AUDIO_N, [](const auto &a, const auto &b) { return a.value < b.value; });
-
     for (auto j = 0; j < BASE_AUDIO_N; j++) {
-        printf("[%u, %u],", result[j].index + 1, result[j].value);
+        printf("[%u, %u],", result_raw[j][0] + 1, result_raw[j][1]);
     }
+    printf("\n");
 
     cudaFree(chunk_d);
 }

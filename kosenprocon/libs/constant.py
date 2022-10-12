@@ -9,6 +9,6 @@ LOG_LEVEL = "DEBUG"
 
 EXAMPLE_PROBLEM = r"samples/original/problem4.wav"
 
-FILTER_THRESHOLD = 1.0
+FILTER_THRESHOLD = 10
 
 DLL_DIR = r"./build"

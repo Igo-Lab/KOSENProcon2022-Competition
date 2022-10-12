@@ -101,7 +101,7 @@ def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[int]
     return (new_no, wav)
 
 
-def send_answer(problem_id: str, answer: list[int]):
+def send_answer(problem_id: str, answer: set[int]):
     logger.info("Trying to sending the answer.")
     li = [f"{x:02}" for x in answer]
 

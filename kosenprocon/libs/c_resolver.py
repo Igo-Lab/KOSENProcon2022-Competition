@@ -53,4 +53,5 @@ def resolver(
         mask.ctypes.data_as(_BOOL_P),
         result_pp,
     )
+    print(result)
     logger.debug("Calling C++ Resolver has been done.")
