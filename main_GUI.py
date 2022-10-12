@@ -65,7 +65,7 @@ if __name__ == '__main__':
     def send_ans(data,list):
         wid = tk.Tk()
 
-        wid.geometry('600x670')
+        wid.geometry('700x780')
         wid.title('回答送信確認画面')
         wid.configure(bg="black")
 
@@ -74,34 +74,34 @@ if __name__ == '__main__':
         box_name1 = tk.Label(wid,font=("normal",20),text='判別結果',bg="black",fg="#ffffff")
         box_name1.place(x=0,y=0)
         box_ans = ScrolledText(wid,font=("normal",16),height=5,width=50)
-        box_ans.place(x=10,y=40)
+        box_ans.place(x=40,y=60)
         box_ans.insert(tk.END,str(data))
 
         #修正入力側
         box_name2 = tk.Label(wid,font=("normal",20),text='修正を入力',bg="black",fg="#ffffff")
-        box_name2.place(x=0,y=290)
+        box_name2.place(x=0,y=370)
         box_fix = ScrolledText(wid,font=("normal",16),height=5,width=50)
-        box_fix.place(x=10,y=330)
+        box_fix.place(x=40,y=430)
 
         #差分合計値リストの表示
         list_name1 = tk.Label(wid,font=("normal",20),text='差分合計値リスト',bg='black',fg='#ffffff')
-        list_name1.place(x=0,y=160)
+        list_name1.place(x=0,y=190)
         sum_list = ScrolledText(wid,font=("normal",16),height=4,width=50)
-        sum_list.place(x=10,y=193)
+        sum_list.place(x=40,y=253)
         sum_list.insert(tk.END,str(list))
 
         #送信ボタン
         send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正せずに回答を送信',bg="#ff0044",command=partial(post_ans,data))
-        send_btn.place(x=140,y=460)
+        send_btn.place(x=140,y=590)
 
 
         #修正した回答の送信ボタン
         fixed_send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正した内容を送信',bg="#00dd44",command=partial(post_fix_ans,box_fix))
-        fixed_send_btn.place(x=150,y=520)
+        fixed_send_btn.place(x=150,y=660)
         
         #画面下の注意書き
         attention_label = tk.Label(wid,font=("normal",10,"bold"),text='確認ダイアログは出ません!!',bg='red',fg='#ffffff')
-        attention_label.place(x=190,y=600)
+        attention_label.place(x=190,y=730)
 
     #メイン画面に取得したファイル名を表示
     def print_filenames(tko,names):
@@ -226,7 +226,7 @@ if __name__ == '__main__':
     token_confirm.place(x=0,y=70)
         #トークン・URL確認ボタン
     token_confirm_btn = tk.Button(frm,font=("normal",16),background='#00dd44',text='確認',command=token_confirm_func)
-    token_confirm_btn.place(x=310,y=70)
+    token_confirm_btn.place(x=330,y=70)
 
     #データ取得ボタンの定義と配置
     get_prob_data_btn = tk.Button(frm,font=("normal",20),background='#ffbb44',text='問題を取得',command=partial(get_prob_data,how_many_data_box))
