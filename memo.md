@@ -101,3 +101,24 @@ maxwellの場合2048
 ```
 sudo sh -c 'echo 80 > /sys/devices/pwm-fan/target_pwm'
 ```
+
+# 並び替えアルゴリズム
+
+```python
+thebin = []
+for idx in random:
+    thebin.append(idx)
+    cont = [thebin[-1]]
+    head = thebin[-1]
+    tail = thebin[-1]
+    while True:
+        if head-1 in thebin:
+            cont.insert(0, head-1)
+            head -= 1
+        elif tail+1 in thebin:
+            cont.append(tail+1)
+            tail += 1
+        else:
+            break
+    print(cont)
+```

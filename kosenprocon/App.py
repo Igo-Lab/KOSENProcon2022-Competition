@@ -84,7 +84,7 @@ class App:
                     for _ in range(cls.problems_data[-1].chunks):
                         cls.raw_chunks.append(libs.get_chunk(cls.raw_chunks))
                         # 1こずつ取り出し、つなげられそうならつなげる
-                        # TODO: HEAD, TAILのINDEXをつなげた後更新しなければ・・・
+                        # TODO: HEAD, TAILのINDEXをつなげた後更新しなければ・・・->memo.md参照
                         tmp_joined_chunk = copy.copy(cls.raw_chunks[-1][1])
                         for pre_chunk in cls.raw_chunks[:-1]:
                             # 後ろに連番になってないか。raw_chunks={(1, []), (3, []), (2, [])})のとき、[1]にヒットする。
