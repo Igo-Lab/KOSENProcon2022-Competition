@@ -65,7 +65,7 @@ if __name__ == '__main__':
     def send_ans(data,list):
         wid = tk.Tk()
 
-        wid.geometry('700x780')
+        wid.geometry('700x900')
         wid.title('回答送信確認画面')
         wid.configure(bg="black")
 
@@ -79,29 +79,29 @@ if __name__ == '__main__':
 
         #修正入力側
         box_name2 = tk.Label(wid,font=("normal",20),text='修正を入力',bg="black",fg="#ffffff")
-        box_name2.place(x=0,y=370)
+        box_name2.place(x=0,y=470)
         box_fix = ScrolledText(wid,font=("normal",16),height=5,width=50)
-        box_fix.place(x=40,y=430)
+        box_fix.place(x=40,y=560)
 
         #差分合計値リストの表示
         list_name1 = tk.Label(wid,font=("normal",20),text='差分合計値リスト',bg='black',fg='#ffffff')
-        list_name1.place(x=0,y=190)
+        list_name1.place(x=0,y=230)
         sum_list = ScrolledText(wid,font=("normal",16),height=4,width=50)
-        sum_list.place(x=40,y=253)
+        sum_list.place(x=40,y=323)
         sum_list.insert(tk.END,str(list))
 
         #送信ボタン
         send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正せずに回答を送信',bg="#ff0044",command=partial(post_ans,data))
-        send_btn.place(x=140,y=590)
+        send_btn.place(x=140,y=710)
 
 
         #修正した回答の送信ボタン
         fixed_send_btn = tk.Button(wid,font=("normal",20,"bold"),text='修正した内容を送信',bg="#00dd44",command=partial(post_fix_ans,box_fix))
-        fixed_send_btn.place(x=150,y=660)
+        fixed_send_btn.place(x=150,y=790)
         
         #画面下の注意書き
         attention_label = tk.Label(wid,font=("normal",10,"bold"),text='確認ダイアログは出ません!!',bg='red',fg='#ffffff')
-        attention_label.place(x=190,y=730)
+        attention_label.place(x=190,y=860)
 
     #メイン画面に取得したファイル名を表示
     def print_filenames(tko,names):
