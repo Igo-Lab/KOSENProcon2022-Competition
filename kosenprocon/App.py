@@ -20,7 +20,7 @@ class App:
     compressed_srcs_len: npt.NDArray[np.int32]
     raw_srcs: list[list[np.int16]]
     # 1D
-    raw_chunks: list[tuple[int, list[int]]] = []
+    raw_chunks: list[tuple[int, list[np.int16]]] = []
     compressed_chunk: npt.NDArray[np.int16]
 
     compressing_rate: int = libs.COMPRESSING_RATE
@@ -29,7 +29,7 @@ class App:
     match: libs.MatchData
     problems_data: list[libs.ProblemData] = []
 
-    answer: set[int]
+    answer: set[int] = set()
     srcs_mask: npt.NDArray[np.bool_]  # CUDA処理側に処理しない元データ情報を渡す
 
     # gpuから帰ってくるresult
@@ -73,8 +73,9 @@ class App:
                     cls.problems_data.append(p)
 
                     # 各種初期化
-                    cls.answer = set()
+                    cls.answer.clear()
                     cls.srcs_mask = np.full(libs.LOAD_BASE_NUM, False, dtype=np.bool_)
+                    cls.raw_chunks.clear()
 
                     # 本当は時刻チェックでwaitかける処理が必要だが・・・
 
@@ -117,6 +118,7 @@ class App:
                         # 次のCUDA処理のためのマスクを作成
                         cls.makemask(cls.srcs_mask)
 
+                    # <--break
                     # F5アタックにならないようにリミッタ
                     libs.send_answer(cls.problems_data[-1].id, cls.answer)
                     time.sleep(5)
@@ -173,11 +175,6 @@ class App:
 
         rs = np.array(src[::rate], dtype=np.int16)
         logger.debug(f"Compressing... {len(src)}->{len(rs)}")
-        # rs = soxr.resample(
-        #     src,
-        #     libs.SRC_SAMPLE_RATE,
-        #     int(libs.SRC_SAMPLE_RATE / cls.compressing_rate),
-        # )
 
         return rs
 

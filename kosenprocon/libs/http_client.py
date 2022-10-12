@@ -73,7 +73,7 @@ def get_problem() -> ProblemData:
 # return: (データ番号,取得したデータ)のタプル
 
 
-def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[int]]:
+def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[np.int16]]:
     r = requests.post(
         constant.API_URL + "/problem/chunks",
         params={"n": len(already) + 1},
@@ -94,7 +94,7 @@ def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[int]
     )
     r.raise_for_status()
 
-    wav: npt.NDArray[np.int16]
+    wav: list[np.int16]
     with wave.open(io.BytesIO(r.content)) as wr:
         wav = np.frombuffer(wr.readframes(-1), dtype=np.int16).tolist()
 
