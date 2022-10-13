@@ -3,7 +3,7 @@ COMPRESSING_RATE = 16
 BASE_AUDIO_DIR = r"samples/JKspeech"
 LOAD_BASE_NUM = 88
 API_TOKEN = r"xxxxxxxxxxxx"
-API_URL = r"http://192.168.0.9:12345"
+API_URL = r"https://procon33-practice.kosen.work"
 TIMEOUT = 3.0
 LOG_LEVEL = "DEBUG"
 

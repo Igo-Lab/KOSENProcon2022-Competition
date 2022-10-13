@@ -67,6 +67,7 @@ class App:
                     )
 
                     if same_id_num > 0:
+                        time.sleep(5)
                         continue
 
                     # 末尾に問題情報を追加
@@ -84,15 +85,27 @@ class App:
                     for _ in range(cls.problems_data[-1].chunks):
                         cls.raw_chunks.append(libs.get_chunk(cls.raw_chunks))
                         # 1こずつ取り出し、つなげられそうならつなげる
-                        # TODO: HEAD, TAILのINDEXをつなげた後更新しなければ・・・->memo.md参照
                         tmp_joined_chunk = copy.copy(cls.raw_chunks[-1][1])
-                        for pre_chunk in cls.raw_chunks[:-1]:
-                            # 後ろに連番になってないか。raw_chunks={(1, []), (3, []), (2, [])})のとき、[1]にヒットする。
-                            if cls.raw_chunks[-1][0] + 1 == pre_chunk[0]:
-                                tmp_joined_chunk = [*tmp_joined_chunk, *pre_chunk[1]]
+                        head = tail = cls.raw_chunks[-1][0]
 
-                            if cls.raw_chunks[-1][0] - 1 == pre_chunk[0]:
-                                tmp_joined_chunk = [*pre_chunk[1], *tmp_joined_chunk]
+                        while True:
+                            front_element = list(
+                                filter(lambda x: x[0] == head - 1, cls.raw_chunks[:-1])
+                            )
+                            back_element = list(
+                                filter(lambda x: x[0] == tail + 1, cls.raw_chunks[:-1])
+                            )
+
+                            if len(front_element) > 0:
+                                fre = front_element[0][1]
+                                tmp_joined_chunk = [*fre, *tmp_joined_chunk]
+                                head -= 1
+                            elif len(back_element) > 0:
+                                bae = back_element[0][1]
+                                tmp_joined_chunk = [*tmp_joined_chunk, *bae]
+                                tail += 1
+                            else:
+                                break
 
                         cls.compressed_chunk = cls.compress(
                             np.array(tmp_joined_chunk, dtype=np.int16),
@@ -119,9 +132,7 @@ class App:
                         cls.makemask(cls.srcs_mask)
 
                     # <--break
-                    # F5アタックにならないようにリミッタ
                     libs.send_answer(cls.problems_data[-1].id, cls.answer)
-                    time.sleep(5)
             except exceptions.RequestException as e:
                 logger.warning(
                     "Can't retrieve a problem. May be the server is over loaded or the match isn't started."
