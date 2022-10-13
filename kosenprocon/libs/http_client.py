@@ -1,11 +1,9 @@
 import io
+import urllib.parse
 import wave
-from hashlib import new
 from typing import *
-from weakref import proxy
 
 import numpy as np
-import numpy.typing as npt
 import requests
 from loguru import logger
 from pydantic import BaseModel
@@ -48,7 +46,7 @@ class answer_verified_data(BaseModel):
 def get_match() -> MatchData:
     logger.info("Trying to get a match.")
     r = requests.get(
-        constant.API_URL + "/match",
+        urllib.parse.urljoin(constant.API_URL, "/match"),
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
         proxies=PROXY,
@@ -60,7 +58,7 @@ def get_match() -> MatchData:
 def get_problem() -> ProblemData:
     logger.info("Trying to get a problem.")
     r = requests.get(
-        constant.API_URL + "/problem",
+        urllib.parse.urljoin(constant.API_URL, "/problem"),
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
         proxies=PROXY,
@@ -75,7 +73,7 @@ def get_problem() -> ProblemData:
 
 def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[np.int16]]:
     r = requests.post(
-        constant.API_URL + "/problem/chunks",
+        urllib.parse.urljoin(constant.API_URL, "/problem/chunks"),
         params={"n": len(already) + 1},
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
@@ -87,7 +85,7 @@ def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[np.i
     new_no = int(chds.chunks[-1].split("_")[0][-1])
     logger.info(f"Trying to get chunk={new_no}")
     r = requests.get(
-        constant.API_URL + f"/problem/chunks/{chds.chunks[-1]}",
+        urllib.parse.urljoin(constant.API_URL, f"/problem/chunks/{chds.chunks[-1]}"),
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
         proxies=PROXY,
@@ -108,7 +106,7 @@ def send_answer(problem_id: str, answer: set[int]):
     ad = AnswerData(problem_id=problem_id, answers=li)
 
     r = requests.post(
-        constant.API_URL + "/problem",
+        urllib.parse.urljoin(constant.API_URL, "/problem"),
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
         proxies=PROXY,
