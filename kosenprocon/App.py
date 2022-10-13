@@ -134,7 +134,7 @@ class App:
                     # <--break
                     libs.send_answer(cls.problems_data[-1].id, cls.answer)
             except exceptions.RequestException as e:
-                logger.warning(f"SERVER ACCESS ERROR. {e.response.text}")
+                logger.warning(f"SERVER ACCESS ERROR. {str(e.response.text)[:-1]}")
                 print(e)
                 time.sleep(2)
 

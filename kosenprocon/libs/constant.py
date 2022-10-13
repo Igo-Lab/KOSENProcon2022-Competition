@@ -19,5 +19,6 @@ PROXY = {
     "https": "proxy.asahikawa-nct.ac.jp:8080",
 }
 
-cfg = configparser.ConfigParser(defaults={"ACCESS_TOKEN": "xxxxx"}).read("./config.ini")
-API_TOKEN = cfg.read("DEFAULT", "ACCESS_TOKEN")
+cfg = configparser.ConfigParser(defaults={"ACCESS_TOKEN": "xxxxx"})
+cfg.read("./config.ini")
+API_TOKEN = cfg.get("DEFAULT", "ACCESS_TOKEN")
