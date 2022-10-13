@@ -10,8 +10,12 @@ from pydantic import BaseModel
 
 from . import constant
 
-REQ_HEADER = {"procon-token": constant.API_TOKEN}
-PROXY = {"http": "", "https": ""}
+REQ_HEADER = {
+    "procon-token": constant.API_TOKEN,
+    "Content-Type": "application/json",
+    "charset": "utf-8",
+}
+PROXY = constant.PROXY
 
 
 class MatchData(BaseModel):
@@ -110,7 +114,7 @@ def send_answer(problem_id: str, answer: set[int]):
         headers=REQ_HEADER,
         timeout=constant.TIMEOUT,
         proxies=PROXY,
-        json=ad.json(),
+        data=ad.json(),
     )
     r.raise_for_status()
 

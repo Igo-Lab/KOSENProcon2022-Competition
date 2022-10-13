@@ -134,9 +134,7 @@ class App:
                     # <--break
                     libs.send_answer(cls.problems_data[-1].id, cls.answer)
             except exceptions.RequestException as e:
-                logger.warning(
-                    "Can't retrieve a problem. May be the server is over loaded or the match isn't started."
-                )
+                logger.warning(f"SERVER ACCESS ERROR. {e.response.text}")
                 print(e)
                 time.sleep(2)
 
