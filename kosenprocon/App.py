@@ -42,6 +42,8 @@ class App:
 
     @classmethod
     def app(cls):
+        np.set_printoptions(precision=3)
+
         logger.remove()
         logger.add(
             sys.stdout,
@@ -249,10 +251,13 @@ class App:
             if abs(zvalue) > libs.FILTER_THRESHOLD:
                 answer.add(num)
 
-        logger.info(f"すべてのzscoreの値:")
-        print((sums[:,1]-mean) / std)
+        logger.info(f"候補以外のzscoreの値:")
+        zs_other = np.sort(((filtered[:, 1] - mean) / std))
+        print(zs_other)
         logger.info(f"候補のzscoreの値: {zscored}")
-        logger.info(f"暫定的な回答: answer={answer}\n")
+
+        temp_ans = [f"{(x-1)%44+1:02}" for x in answer]
+        logger.info(f"暫定的な回答: answer={temp_ans}\n")
 
     @classmethod
     def set_compaction_rate(cls, rate: int):
