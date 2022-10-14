@@ -1,11 +1,19 @@
 import configparser
 
-IS_LOCAL = False
+# check
+IS_LOCAL = True
+API_URL = r"https://procon33-practice.kosen.work"
+PROXY = {
+    "http": "",
+    "https": "",
+}
+#
+
 SRC_SAMPLE_RATE = 48000
 COMPRESSING_RATE = 16
 BASE_AUDIO_DIR = r"samples/JKspeech"
 LOAD_BASE_NUM = 88
-API_URL = r"https://procon33-practice.kosen.work"
+
 TIMEOUT = 3.0
 LOG_LEVEL = "DEBUG"
 
@@ -15,10 +23,6 @@ FILTER_THRESHOLD = 10
 
 DLL_DIR = r"./build"
 
-PROXY = {
-    "http": "proxy.asahikawa-nct.ac.jp:8080",
-    "https": "proxy.asahikawa-nct.ac.jp:8080",
-}
 
 cfg = configparser.ConfigParser(defaults={"ACCESS_TOKEN": "xxxxx"})
 cfg.read("./config.ini")

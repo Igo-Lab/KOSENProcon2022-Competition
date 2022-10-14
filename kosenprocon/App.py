@@ -32,6 +32,9 @@ class App:
     answer: set[int] = set()
     srcs_mask: npt.NDArray[np.bool_]  # CUDA処理側に処理しない元データ情報を渡す
 
+    # 復帰処理
+    got_num: int = 0
+
     # gpuから帰ってくるresult
     result_gpu: npt.NDArray[np.uint32] = np.empty(
         (libs.LOAD_BASE_NUM, 2), dtype=np.uint32
@@ -77,12 +80,20 @@ class App:
                     cls.answer.clear()
                     cls.srcs_mask = np.full(libs.LOAD_BASE_NUM, False, dtype=np.bool_)
                     cls.raw_chunks.clear()
+                    cls.got_num = 0
 
                     # 本当は時刻チェックでwaitかける処理が必要だが・・・
 
-                    # chunkファイルを取り寄せる
+                    # 復帰処理
+                    if cls.ask_resume():
+                        cls.got_num = int(input("前回何分割まで取り寄せましたか？: "))
+                        for _ in range(cls.got_num):
+                            cls.raw_chunks.append(libs.get_chunk(cls.raw_chunks))
+
+                        logger.info("復帰分データ投入完了。")
+
                     # while文中で確定でファイルを取り寄せるためこのような条件式になっている
-                    for _ in range(cls.problems_data[-1].chunks):
+                    for _ in range(cls.got_num, cls.problems_data[-1].chunks):
                         cls.raw_chunks.append(libs.get_chunk(cls.raw_chunks))
                         # 1こずつ取り出し、つなげられそうならつなげる
                         tmp_joined_chunk = copy.copy(cls.raw_chunks[-1][1])
@@ -97,10 +108,12 @@ class App:
                             )
 
                             if len(front_element) > 0:
+                                logger.debug(f"前方連結: {head-1}+{head}")
                                 fre = front_element[0][1]
                                 tmp_joined_chunk = [*fre, *tmp_joined_chunk]
                                 head -= 1
                             elif len(back_element) > 0:
+                                logger.debug(f"後方連結: {tail}+{tail+1}")
                                 bae = back_element[0][1]
                                 tmp_joined_chunk = [*tmp_joined_chunk, *bae]
                                 tail += 1
@@ -112,7 +125,7 @@ class App:
                             cls.compressing_rate,
                         )
 
-                        print("chunk ", cls.compressed_chunk[:100])
+                        # print("chunk ", cls.compressed_chunk[:100])
                         sums = cls.get_sums(
                             cls.compressed_chunk,
                             cls.srcs_mask,
@@ -128,8 +141,9 @@ class App:
                         if len(cls.answer) >= cls.problems_data[-1].data:
                             break
 
+                        logger.info("十分なデータが得られなかったため、追加の分割データを取得します。")
                         # 次のCUDA処理のためのマスクを作成
-                        cls.makemask(cls.srcs_mask)
+                        cls.makemask(cls.answer, cls.srcs_mask)
 
                     # <--break
                     libs.send_answer(cls.problems_data[-1].id, cls.answer)
@@ -159,7 +173,7 @@ class App:
             rs = cls.compress(src, cls.compressing_rate)
 
             if first:
-                print(rs[:100])
+                # print(rs[:100])
                 first = False
 
             lenarr.append(len(rs))  # 元の長さを保存
@@ -233,7 +247,8 @@ class App:
             if abs(zvalue) > libs.FILTER_THRESHOLD:
                 answer.add(num)
 
-        logger.debug(f"Here is the extracted answers: {zscored}\n")
+        logger.info(f"候補のzscoreの値: {zscored}")
+        logger.info(f"暫定的な回答: answer={answer}\n")
 
     @classmethod
     def set_compaction_rate(cls, rate: int):
@@ -246,7 +261,7 @@ class App:
             cls.compressed_chunk = cls.compress(cls.raw_chunks, rate)
 
     @classmethod
-    def makemask(answer: set[int], mask: npt.NDArray[np.bool_]):
+    def makemask(cls, answer: set[int], mask: npt.NDArray[np.bool_]):
         for num in answer:
             num = num - 1
             mask[num] = True
@@ -258,3 +273,12 @@ class App:
     @classmethod
     def show_result(cls):
         pass
+
+    @classmethod
+    def ask_resume(cls) -> bool:
+        while True:
+            choice = input("前回途中で処理を中断しましたか？ [y/N]: ").lower()
+            if choice in ["y", "ye", "yes"]:
+                return True
+            elif choice in ["n", "no"]:
+                return False

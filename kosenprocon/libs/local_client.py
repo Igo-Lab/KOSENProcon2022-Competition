@@ -1,5 +1,4 @@
-import io
-import urllib.parse
+import uuid
 import wave
 from typing import *
 
@@ -49,9 +48,7 @@ class answer_verified_data(BaseModel):
 
 def get_match() -> MatchData:
     logger.info("Trying to get a match.")
-
-    print("Input Match Data:")
-    problem_num: int = int(input("Problems num: "))
+    problem_num: int = 0
 
     return MatchData(problems=problem_num, bonus_factor=[], penalty=0)
 
@@ -59,10 +56,10 @@ def get_match() -> MatchData:
 def get_problem() -> ProblemData:
     logger.info("Trying to get a problem.")
 
-    print("Input Problem Data:")
-    problem_id: str = input("Problem ID: ")
-    chunks_num: int = int(input("Chunks Num: "))
-    overlap: int = int(input("Overlap(data) Num:"))
+    print("1. 問題のデータを入力してください。: ")
+    problem_id: str = str(uuid.uuid4())
+    chunks_num: int = int(input("分割データの個数を入力してください。: "))
+    overlap: int = int(input("重ね合わせ数を入力してください。: "))
 
     return ProblemData(
         id=problem_id, chunks=chunks_num, starts_at=0, time_limit=0, data=overlap
@@ -74,8 +71,8 @@ def get_problem() -> ProblemData:
 
 
 def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[np.int16]]:
-    path = input("Please input a chunk path.")
-    order: int = int(input("Please input the order of this chunk."))
+    path = input("分割データのパスを入力してください: ")
+    order: int = int(input("このチャンクの並び順を入力してください: "))
 
     wav: list[np.int16]
     with wave.open(path) as wr:
@@ -86,9 +83,9 @@ def get_chunk(already: list[tuple[int, list[np.int16]]]) -> tuple[int, list[np.i
 
 def send_answer(problem_id: str, answer: set[int]):
     logger.info("Trying to sending the answer.")
-    li = [f"{x:02}" for x in answer]
+    li = [f"{(x-1)%44+1:02}" for x in answer]
 
     ad = AnswerData(problem_id=problem_id, answers=li)
 
-    logger.info(f"Sending complete. problem-id={problem_id} answer={answer}")
-    input("Please press enter key...")
+    logger.info(f"2. 送信完了。 problem-id={problem_id} answer={li}")
+    input("Enterキーを押すと続行します・・・")

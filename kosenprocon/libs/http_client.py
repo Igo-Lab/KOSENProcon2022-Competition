@@ -119,4 +119,4 @@ def send_answer(problem_id: str, answer: set[int]):
     )
     r.raise_for_status()
 
-    logger.info(f"Sending complete. problem-id={problem_id} answer={answer}")
+    logger.info(f"Sending complete. problem-id={problem_id} answer={li}")

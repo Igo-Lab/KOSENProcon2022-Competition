@@ -1,5 +1,6 @@
 #!/bin/bash
 
+sudo sh -c 'echo N > /sys/kernel/debug/gpu.0/timeouts_enabled'
 source .venv/bin/activate
 python -m kosenprocon
 deactivate
