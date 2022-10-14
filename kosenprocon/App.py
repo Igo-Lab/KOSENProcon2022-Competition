@@ -205,12 +205,6 @@ class App:
 
         return rs
 
-    # GPUにリサンプリングした読みデータを転送する．
-    # 問題chunkデータは逐次転送することにする．
-    @classmethod
-    def gpu_memcpy():
-        pass
-
     # chunk: 解きたい問題データ
     # srcs: 成形された元データ集
     # src_lengths: 元データの本当の長さ。C側で利用される。
@@ -259,15 +253,15 @@ class App:
         temp_ans = [f"{(x-1)%44+1:02}" for x in answer]
         logger.info(f"暫定的な回答: answer={temp_ans}\n")
 
-    @classmethod
-    def set_compaction_rate(cls, rate: int):
-        if cls.compressing_rate != rate:
-            logger.info("compaction rate was changed.")
-            cls.compressing_rate = rate
+    # @classmethod
+    # def set_compaction_rate(cls, rate: int):
+    #     if cls.compressing_rate != rate:
+    #         logger.info("compaction rate was changed.")
+    #         cls.compressing_rate = rate
 
-            # reload
-            cls.load_srcs(reload=True)
-            cls.compressed_chunk = cls.compress(cls.raw_chunks, rate)
+    #         # reload
+    #         cls.load_srcs(reload=True)
+    #         cls.compressed_chunk = cls.compress(cls.raw_chunks, rate)
 
     @classmethod
     def makemask(cls, answer: set[int], mask: npt.NDArray[np.bool_]):

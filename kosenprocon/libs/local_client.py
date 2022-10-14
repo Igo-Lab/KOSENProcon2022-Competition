@@ -3,7 +3,6 @@ import wave
 from typing import *
 
 import numpy as np
-import requests
 from loguru import logger
 from pydantic import BaseModel
 

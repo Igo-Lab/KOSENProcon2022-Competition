@@ -11,6 +11,7 @@
     "python.linting.flake8Args": [
         "--line-length=120"
     ],
+    "python.linting.mypyEnabled": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
     },
