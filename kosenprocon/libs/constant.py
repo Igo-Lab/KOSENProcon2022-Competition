@@ -1,7 +1,7 @@
 import configparser
 
 # check
-IS_LOCAL = True
+IS_LOCAL = False
 API_URL = r"https://procon33-practice.kosen.work"
 PROXY = {
     "http": "",

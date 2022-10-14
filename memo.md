@@ -122,3 +122,5 @@ for idx in random:
             break
     print(cont)
 ```
+
+"Icon made by Pixel perfect from www.flaticon.com"
