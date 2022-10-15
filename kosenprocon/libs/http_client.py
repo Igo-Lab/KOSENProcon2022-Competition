@@ -30,7 +30,7 @@ class MatchData(BaseModel):
 class ProblemData(BaseModel):
     id: str
     chunks: int
-    starts_at: int
+    start_at: int
     time_limit: int
     data: int
 
