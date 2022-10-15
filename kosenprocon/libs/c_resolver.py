@@ -24,7 +24,7 @@ c_memcpy_src2gpu.argtypes = (_INT16_PP, _INT32_P)
 
 c_resolver = c_resolver_dll.resolver
 c_resolver.restype = None
-c_resolver.argtypes = (_INT16_P, ctypes.c_int32, _BOOL_P, _UINT32_PP)
+c_resolver.argtypes = (_INT16_P, ctypes.c_int32, _BOOL_P, _UINT32_PP, _INT32_P)
 
 
 def memcpy_src2gpu(srcs: npt.NDArray[np.int16], src_lens: npt.NDArray[np.int32]):
@@ -41,6 +41,7 @@ def resolver(
     chunk_len: int,
     mask: npt.NDArray[np.bool_],
     result: npt.NDArray[np.uint32],
+    minimum_val_startpos: npt.NDArray[np.int32],
 ):
     result_pp = (
         result.__array_interface__["data"][0]
@@ -52,6 +53,7 @@ def resolver(
         chunk_len,
         mask.ctypes.data_as(_BOOL_P),
         result_pp,
+        minimum_val_startpos.ctypes.data_as(_INT32_P),
     )
     print(result)
     logger.debug("Calling C++ Resolver has been done.")

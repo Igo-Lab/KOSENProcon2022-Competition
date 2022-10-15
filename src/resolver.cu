@@ -1,6 +1,7 @@
 
 #include <cuda_runtime.h>
 #include <thrust/device_vector.h>
+#include <thrust/extrema.h>
 #include <thrust/reduce.h>
 
 #include <algorithm>
@@ -105,9 +106,11 @@ void memcpy_src2gpu(const int16_t **srcs, const int32_t *lens) {
 }
 
 // 元読みデータはindex-0スタート．つまり0～87
-void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, uint32_t **result_raw) {
+void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, uint32_t **result_raw, int32_t *minimum_val_startpos) {
     int16_t *chunk_d;
     thrust::device_vector<uint32_t> sum_tmp[BASE_AUDIO_N];
+    std::vector<std::vector<uint32_t>> result(BASE_AUDIO_N, std::vector<uint32_t>(2));
+    // int32_t minimum_val_startpos[BASE_AUDIO_N];  //最小値はどこからスタートしているのか
     dim3 block(BLOCK_N);
 
     if (!isInit) {
@@ -147,25 +150,38 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, u
     for (auto i = 0; i < BASE_AUDIO_N; i++) {
         // もし処理が必要ないならスキップ
         if (mask[i]) {
-            result_raw[i][0] = i;
-            result_raw[i][1] = UINT32_MAX;
+            result[i][0] = i;
+            result[i][1] = UINT32_MAX;
+            minimum_val_startpos[i] = INT32_MAX;
             continue;
         }
-        std::cout << "dev pass." << i << std::endl;
+        // std::cout << "dev pass." << i << std::endl;
 
-        result_raw[i][0] = i + 1;
-        result_raw[i][1] = thrust::reduce(
-            thrust::device,
-            sum_tmp[i].begin(),
-            sum_tmp[i].end(),
-            UINT32_MAX,
-            thrust::minimum<uint32_t>());
+        result[i][0] = i + 1;
+        // result[i][1] = thrust::reduce(
+        //     thrust::device,
+        //     sum_tmp[i].begin(),
+        //     sum_tmp[i].end(),
+        //     UINT32_MAX,
+        //     thrust::minimum<uint32_t>());
+        auto min_iter = thrust::min_element(thrust::device, sum_tmp[i].begin(), sum_tmp[i].end());
+        result[i][1] = *min_iter;
+
+        //和が最小になる再生開始位置を求めたい
+        int32_t dist = thrust::distance(sum_tmp[i].begin(), min_iter);
+        dist = dist - chunk_len + 1;  //再生開始位置を特定。python側で[-x:]として使う。
+        minimum_val_startpos[i] = dist;
+        printf("min_s[%d, %d]\n", i + 1, dist);
     }
 
     cudaDeviceSynchronize();
 
-    for (auto j = 0; j < BASE_AUDIO_N; j++) {
-        printf("[%u, %u],", result_raw[j][0] + 1, result_raw[j][1]);
+    std::sort(result.begin(), result.end(), [](auto &a, auto &b) { return a[1] < b[1]; });
+
+    for (auto i = 0; i < BASE_AUDIO_N; i++) {
+        result_raw[i][0] = result[i][0];
+        result_raw[i][1] = result[i][1];
+        printf("[%u, %u],", result_raw[i][0] + 1, result_raw[i][1]);
     }
     printf("\n");
 

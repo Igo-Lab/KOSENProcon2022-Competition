@@ -11,6 +11,7 @@ from loguru import logger
 from pydantic import BaseModel
 from requests import exceptions
 
+from kosenprocon.libs.c_resolver import _INT32_P
 from kosenprocon.libs.constant import FILTER_THRESHOLD
 from kosenprocon.libs.http_client import ProblemData
 
@@ -42,6 +43,10 @@ class App:
     srcs_mask: npt.NDArray[np.bool_] = np.full(
         libs.LOAD_BASE_NUM, False, dtype=np.bool_
     )  # CUDA処理側に処理しない元データ情報を渡す
+
+    minimum_startpos: npt.NDArray[np.int32] = np.empty(
+        (libs.LOAD_BASE_NUM), dtype=np.int32
+    )  # 最小値になるときの再生開始位置
 
     # 復帰処理
     got_num: int = 0
@@ -151,16 +156,25 @@ class App:
                         )
 
                         # print("chunk ", cls.compressed_chunk[:100])
-                        sums = cls.get_sums(
-                            cls.compressed_chunk,
-                            cls.srcs_mask,
+                        sums, min_st = cls.get_sums(
+                            cls.compressed_chunk, cls.srcs_mask, cls.minimum_startpos
                         )
 
-                        sums = sums[np.argsort(sums[:, 1])]
+                        # sums = sums[np.argsort(sums[:, 1])]
 
                         cls.choose_contained(
                             sums, cls.problems_data[-1], cls.srcs_mask, cls.answer
                         )
+
+                        # 解答候補を消す
+                        cls.del_choosed(
+                            cls.compressed_chunk,
+                            cls.compressed_srcs,
+                            min_st,
+                            cls.answer,
+                        )
+
+                        # if cls.verify_chunk(): #ここで現在の段階で次のデータを取得したほうがいいのか、消したchunkをもう一度処理にかけるのか決定する
 
                         # 結果によってbreakでfor抜ける
                         if len(cls.answer) >= cls.problems_data[-1].data and cls.ask_yn(
@@ -245,12 +259,13 @@ class App:
         cls,
         chunk: npt.NDArray[np.int16],
         mask: npt.NDArray[np.bool_],
+        minimum_startpos: npt.NDArray[np.int32],
     ) -> npt.NDArray[np.uint32]:
         logger.info("Start Processing on CUDA.")
 
-        libs.resolver(chunk, len(chunk), mask, cls.result_gpu)
+        libs.resolver(chunk, len(chunk), mask, cls.result_gpu, minimum_startpos)
 
-        return cls.result_gpu
+        return cls.result_gpu, minimum_startpos
 
     @classmethod
     def choose_contained(
@@ -283,15 +298,44 @@ class App:
         temp_ans = [f"{(x-1)%44+1:02}" for x in answer]
         logger.info(f"暫定的な回答: answer={temp_ans}\n")
 
-    # @classmethod
-    # def set_compaction_rate(cls, rate: int):
-    #     if cls.compressing_rate != rate:
-    #         logger.info("compaction rate was changed.")
-    #         cls.compressing_rate = rate
+    @classmethod
+    def del_choosed(
+        cls,
+        chunk: npt.NDArray[np.int16],
+        comped_srcs: npt.NDArray[np.int16],
+        minval_startpos: npt.NDArray[np.int32],
+        answers: set[int],
+    ):
+        for answer in answers:
+            src = comped_srcs[answer - 1]
+            stpos = minval_startpos[answer - 1]
 
-    #         # reload
-    #         cls.load_srcs(reload=True)
-    #         cls.compressed_chunk = cls.compress(cls.raw_chunks, rate)
+            if stpos <= 0:
+                chunk_end = min(len(src) + stpos, len(chunk))
+                src_start = len(src) + stpos
+
+                chunk[0:chunk_end] = (
+                    chunk[0:chunk_end]
+                    - src[
+                        len(src) + stpos : min(len(src) + stpos + len(chunk), len(src)),
+                    ]
+                )
+            else:
+                # stpos > 0
+                chunk[stpos : min(len(chunk), stpos + len(src))] = (
+                    chunk[stpos : min(len(chunk), stpos + len(src))]
+                    - src[0 : min(len(src) - stpos, len(src))]
+                )
+
+            # clip_starti = max(0, j - mean_data.__len__())
+            # clip_endi = min(j, mean_problem_data.__len__())
+            # data_starti = max(mean_data.__len__() - j, 0)
+            # data_endi = min(
+            #     mean_data.__len__(),
+            #     mean_data.__len__() + mean_problem_data.__len__() - j,
+            # )
+            # # print(j, clip_starti, clip_endi, data_starti, data_endi)
+            # subbed = chunk[clip_starti:clip_endi] - src[data_starti:data_endi]
 
     @classmethod
     def makemask(cls, answer: set[int], mask: npt.NDArray[np.bool_]):
