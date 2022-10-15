@@ -29,6 +29,7 @@ if __name__ == "__main__":
             urllib.parse.urljoin(constant.API_URL, "test"),
             headers=REQ_HEADER,
             PROXY=constant.PROXY,
+            timeout=3.0,
         )
 
         r.raise_for_status()
