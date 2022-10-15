@@ -157,7 +157,7 @@ class App:
                         )
 
                         # print("chunk ", cls.compressed_chunk[:100])
-                        sums, min_st = cls.get_sums(
+                        sums, min_sts = cls.get_sums(
                             cls.compressed_chunk, cls.srcs_mask, cls.minimum_startpos
                         )
 
@@ -171,12 +171,12 @@ class App:
                         cls.del_choosed(
                             cls.compressed_chunk,
                             cls.compressed_srcs,
-                            min_st,
+                            min_sts,
                             cls.answer,
                         )
 
-                        if (
-                            cls.verify_chunk()
+                        if cls.verify_chunk(
+                            cls.compressed_chunk
                         ):  # ここで現在の段階で次のデータを取得したほうがいいのか、消したchunkをもう一度処理にかけるのか決定する
                             pass
 
@@ -312,25 +312,37 @@ class App:
     ):
         for answer in answers:
             src = comped_srcs[answer - 1]
+            src_len = len(src)
+            chunk_len = len(chunk)
             stpos = minval_startpos[answer - 1]
+            index = stpos + 1
+            clip_starti = max(0, index - src_len)
+            clip_endi = min(index, chunk_len)
+            src_starti = max(src_len - index, 0)
+            src_endi = min(src_len, src_len + chunk_len - index)
 
-            if stpos <= 0:
-                chunk_end = len(src) + stpos
-                src_start = -stpos
-                src_end = min(len(src), src_start + len(chunk))
+            chunk[clip_starti:clip_endi] = (
+                chunk[clip_starti:clip_endi] - src[src_starti:src_endi]
+            )
 
-                chunk[0:chunk_end] = chunk[0:chunk_end] - src[src_start:src_end]
-            else:
-                # stpos > 0
-                chunk_start = stpos
-                chunk_end = min(len(chunk), chunk_start + len(src))
-                src_end = min(len(chunk) - stpos, len(src))
+            # if stpos <= 0:
+            #     chunk_end = len(src) + stpos
+            #     src_start = -stpos
+            #     src_end = min(len(src), src_start + len(chunk))
 
-                chunk[chunk_start:chunk_end] = (
-                    chunk[chunk_start:chunk_end] - src[0:src_end]
-                )
+            #     chunk[0:chunk_end] = chunk[0:chunk_end] - src[src_start:src_end]
+            # else:
+            #     # stpos > 0
+            #     chunk_start = stpos
+            #     chunk_end = min(len(chunk), chunk_start + len(src))
+            #     src_end = min(len(chunk) - stpos, len(src))
+
+            #     chunk[chunk_start:chunk_end] = (
+            #         chunk[chunk_start:chunk_end] - src[0:src_end]
+            #     )
 
     # もう一度CUDAを実行できる余地があればTrue
+    # まだ消せるか？
     @classmethod
     def verify_chunk(cls, chunk: npt.NDArray[np.int16]) -> bool:
         filling_rate = np.sum(np.abs(chunk)) / len(chunk)

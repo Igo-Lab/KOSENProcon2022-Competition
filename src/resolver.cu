@@ -169,7 +169,6 @@ void resolver(const int16_t *chunk, const int32_t chunk_len, const bool *mask, u
 
         //和が最小になる再生開始位置を求めたい
         int32_t dist = thrust::distance(sum_tmp[i].begin(), min_iter);
-        dist = dist - chunk_len + 1;  //再生開始位置を特定。python側で[-x:]として使う。
         minimum_val_startpos[i] = dist;
         printf("min_s[%d, %d]\n", i + 1, dist);
     }
