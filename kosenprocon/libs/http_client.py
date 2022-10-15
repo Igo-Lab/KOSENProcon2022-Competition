@@ -22,6 +22,9 @@ class MatchData(BaseModel):
     problems: int
     bonus_factor: list[float]
     penalty: int
+    change_penalty: int
+    wrong_penalty: int
+    correct_point: int
 
 
 class ProblemData(BaseModel):
