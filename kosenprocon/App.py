@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import wave
+from turtle import filling
 
 import numpy as np
 import numpy.typing as npt
@@ -174,7 +175,10 @@ class App:
                             cls.answer,
                         )
 
-                        # if cls.verify_chunk(): #ここで現在の段階で次のデータを取得したほうがいいのか、消したchunkをもう一度処理にかけるのか決定する
+                        if (
+                            cls.verify_chunk()
+                        ):  # ここで現在の段階で次のデータを取得したほうがいいのか、消したchunkをもう一度処理にかけるのか決定する
+                            pass
 
                         # 結果によってbreakでfor抜ける
                         if len(cls.answer) >= cls.problems_data[-1].data and cls.ask_yn(
@@ -311,31 +315,29 @@ class App:
             stpos = minval_startpos[answer - 1]
 
             if stpos <= 0:
-                chunk_end = min(len(src) + stpos, len(chunk))
-                src_start = len(src) + stpos
+                chunk_end = len(src) + stpos
+                src_start = -stpos
+                src_end = min(len(src), src_start + len(chunk))
 
-                chunk[0:chunk_end] = (
-                    chunk[0:chunk_end]
-                    - src[
-                        len(src) + stpos : min(len(src) + stpos + len(chunk), len(src)),
-                    ]
-                )
+                chunk[0:chunk_end] = chunk[0:chunk_end] - src[src_start:src_end]
             else:
                 # stpos > 0
-                chunk[stpos : min(len(chunk), stpos + len(src))] = (
-                    chunk[stpos : min(len(chunk), stpos + len(src))]
-                    - src[0 : min(len(src) - stpos, len(src))]
+                chunk_start = stpos
+                chunk_end = min(len(chunk), chunk_start + len(src))
+                src_end = min(len(chunk) - stpos, len(src))
+
+                chunk[chunk_start:chunk_end] = (
+                    chunk[chunk_start:chunk_end] - src[0:src_end]
                 )
 
-            # clip_starti = max(0, j - mean_data.__len__())
-            # clip_endi = min(j, mean_problem_data.__len__())
-            # data_starti = max(mean_data.__len__() - j, 0)
-            # data_endi = min(
-            #     mean_data.__len__(),
-            #     mean_data.__len__() + mean_problem_data.__len__() - j,
-            # )
-            # # print(j, clip_starti, clip_endi, data_starti, data_endi)
-            # subbed = chunk[clip_starti:clip_endi] - src[data_starti:data_endi]
+    # もう一度CUDAを実行できる余地があればTrue
+    @classmethod
+    def verify_chunk(cls, chunk: npt.NDArray[np.int16]) -> bool:
+        filling_rate = np.sum(np.abs(chunk)) / len(chunk)
+        print(filling_rate)
+        if filling_rate > 0:
+            pass
+        return False
 
     @classmethod
     def makemask(cls, answer: set[int], mask: npt.NDArray[np.bool_]):
