@@ -56,7 +56,7 @@ def get_problem() -> ProblemData:
     logger.info("Trying to get a problem.")
 
     print("1. 問題のデータを入力してください。: ")
-    problem_id: str = str(uuid.uuid4())
+    problem_id: str = input("問題IDを入力してください: ")
     chunks_num: int = int(input("分割データの個数を入力してください。: "))
     overlap: int = int(input("重ね合わせ数を入力してください。: "))
 

@@ -1,5 +1,6 @@
 import copy
 import math
+import os
 import sys
 import time
 import wave
@@ -7,11 +8,19 @@ import wave
 import numpy as np
 import numpy.typing as npt
 from loguru import logger
+from pydantic import BaseModel
 from requests import exceptions
 
 from kosenprocon.libs.constant import FILTER_THRESHOLD
+from kosenprocon.libs.http_client import ProblemData
 
 from . import libs
+
+
+# ファイル名=問題ID.jsonのファイルを読み込み、再開するときに使う
+class ResumeData(BaseModel):
+    answer: set[int]
+    mask: list[bool]
 
 
 class App:
@@ -82,9 +91,9 @@ class App:
 
                     # 各種初期化
                     cls.answer.clear()
-                    # cls.srcs_mask = np.full(libs.LOAD_BASE_NUM, False, dtype=np.bool_)
                     cls.raw_chunks.clear()
                     cls.got_num = 0
+                    resfile_path = f"resume/{cls.problems_data[-1].id}.json"
 
                     # 本当は時刻チェックでwaitかける処理が必要だが・・・
 
@@ -96,11 +105,17 @@ class App:
 
                         logger.info("復帰分データ投入完了。")
 
-                        if cls.ask_yn("マスクデータを追加しますか？ [y/N]: "):
-                            masks: str = input("マスクする読み札IDを入力して下さい（,区切り）: ")
-                            tmpans = {int(x) for x in masks.split(",")}
-                            cls.makemask(tmpans, cls.srcs_mask)
-                            logger.info("マスクデータ投入完了。")
+                        if os.path.exists(resfile_path):
+                            logger.info("resumeファイルから復元します。")
+                            with open(resfile_path) as f:
+                                res = ResumeData.parse_raw(f.read())
+                                cls.answer = res.answer
+                                cls.srcs_mask = np.array(res.mask, dtype=np.bool_)
+                        elif cls.ask_yn("手動で解答を追加しますか？ [y/N]: "):
+                            ans: str = input("解答読み札IDを入力して下さい（,区切り）: ")
+                            cls.answer = {int(x) for x in ans.split(",")}
+                            cls.makemask(cls.answer, cls.srcs_mask)
+                            logger.info("解答データ投入完了。")
 
                     # while文中で確定でファイルを取り寄せるためこのような条件式になっている
                     for _ in range(cls.got_num, cls.problems_data[-1].chunks):
@@ -156,6 +171,12 @@ class App:
                         logger.info("十分なデータが得られなかったため、追加の分割データを取得します。")
                         # 次のCUDA処理のためのマスクを作成
                         cls.makemask(cls.answer, cls.srcs_mask)
+
+                        with open(resfile_path, "w") as f:
+                            res = ResumeData(
+                                answer=cls.answer, mask=cls.srcs_mask.tolist()
+                            )
+                            f.write(res.json())
 
                     # <--break
                     libs.send_answer(cls.problems_data[-1].id, cls.answer)
@@ -249,6 +270,7 @@ class App:
         # ztest = (filtered[:, 1] - mean) / std
 
         # 最後にanswerに追加して終了
+        debug_id = [(x - 1) % 44 + 1 for x in target[:, 0]]
         for num, zvalue in zip(target[:, 0], zscored):
             if abs(zvalue) > libs.FILTER_THRESHOLD:
                 answer.add(num)

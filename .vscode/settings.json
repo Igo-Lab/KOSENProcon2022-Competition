@@ -102,7 +102,11 @@
         "__nullptr": "cpp",
         "complex": "cpp",
         "filesystem": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "__bit_reference": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp"
     },
     "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0 }"
 }
