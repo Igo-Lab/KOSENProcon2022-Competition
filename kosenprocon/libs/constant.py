@@ -1,7 +1,7 @@
 import configparser
 
 # check
-IS_LOCAL = False
+IS_LOCAL = True
 API_URL = r"http://172.28.1.1:80"
 PROXY = {
     "http": "",
@@ -10,7 +10,7 @@ PROXY = {
 #
 
 SRC_SAMPLE_RATE = 48000
-COMPRESSING_RATE = 16
+COMPRESSING_RATE = 4
 BASE_AUDIO_DIR = r"samples/JKspeech"
 LOAD_BASE_NUM = 88
 

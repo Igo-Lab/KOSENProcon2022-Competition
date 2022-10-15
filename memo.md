@@ -124,3 +124,5 @@ for idx in random:
 ```
 
 "Icon made by Pixel perfect from www.flaticon.com"
+
+# 試合ごとにプログラムを再起動すること

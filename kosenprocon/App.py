@@ -30,7 +30,9 @@ class App:
     problems_data: list[libs.ProblemData] = []
 
     answer: set[int] = set()
-    srcs_mask: npt.NDArray[np.bool_]  # CUDA処理側に処理しない元データ情報を渡す
+    srcs_mask: npt.NDArray[np.bool_] = np.full(
+        libs.LOAD_BASE_NUM, False, dtype=np.bool_
+    )  # CUDA処理側に処理しない元データ情報を渡す
 
     # 復帰処理
     got_num: int = 0
@@ -80,7 +82,7 @@ class App:
 
                     # 各種初期化
                     cls.answer.clear()
-                    cls.srcs_mask = np.full(libs.LOAD_BASE_NUM, False, dtype=np.bool_)
+                    # cls.srcs_mask = np.full(libs.LOAD_BASE_NUM, False, dtype=np.bool_)
                     cls.raw_chunks.clear()
                     cls.got_num = 0
 
@@ -93,6 +95,12 @@ class App:
                             cls.raw_chunks.append(libs.get_chunk(cls.raw_chunks))
 
                         logger.info("復帰分データ投入完了。")
+
+                        if cls.ask_yn("マスクデータを追加しますか？ [y/N]: "):
+                            masks: str = input("マスクする読み札IDを入力して下さい（,区切り）: ")
+                            tmpans = {int(x) for x in masks.split(",")}
+                            cls.makemask(tmpans, cls.srcs_mask)
+                            logger.info("マスクデータ投入完了。")
 
                     # while文中で確定でファイルを取り寄せるためこのような条件式になっている
                     for _ in range(cls.got_num, cls.problems_data[-1].chunks):
