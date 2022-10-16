@@ -21,3 +21,4 @@ pip-selfcheck.json
 __pycache__
 config.ini
 .mypy_cache
+resume/

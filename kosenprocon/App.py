@@ -157,44 +157,48 @@ class App:
                         )
 
                         # print("chunk ", cls.compressed_chunk[:100])
-                        sums, min_sts = cls.get_sums(
-                            cls.compressed_chunk, cls.srcs_mask, cls.minimum_startpos
-                        )
 
-                        # sums = sums[np.argsort(sums[:, 1])]
+                        copied_chunk = cls.compressed_chunk.copy()
+                        while True:
+                            sums, min_sts = cls.get_sums(
+                                copied_chunk,
+                                cls.srcs_mask,
+                                cls.minimum_startpos,
+                            )
 
-                        cls.choose_contained(
-                            sums, cls.problems_data[-1], cls.srcs_mask, cls.answer
-                        )
+                            cls.choose_contained(
+                                sums, cls.problems_data[-1], cls.srcs_mask, cls.answer
+                            )
 
-                        # 解答候補を消す
-                        cls.del_choosed(
-                            cls.compressed_chunk,
-                            cls.compressed_srcs,
-                            min_sts,
-                            cls.answer,
-                        )
+                            # 解答候補を消す
+                            cls.del_choosed(
+                                copied_chunk,
+                                cls.compressed_srcs,
+                                min_sts,
+                                cls.answer,
+                            )
 
-                        if cls.verify_chunk(
-                            cls.compressed_chunk
-                        ):  # ここで現在の段階で次のデータを取得したほうがいいのか、消したchunkをもう一度処理にかけるのか決定する
-                            pass
+                            # 次のCUDA処理のためのマスクを作成
+                            cls.makemask(cls.answer, cls.srcs_mask)
+
+                            with open(resfile_path, "w") as f:
+                                res = ResumeData(
+                                    answer=cls.answer, mask=cls.srcs_mask.tolist()
+                                )
+                                f.write(res.json())
+
+                            if not cls.should_more_process(
+                                copied_chunk
+                            ):  # ここで現在の段階で次のデータを取得したほうがいいのか、消したchunkをもう一度処理にかけるのか決定する
+                                break
 
                         # 結果によってbreakでfor抜ける
                         if len(cls.answer) >= cls.problems_data[-1].data and cls.ask_yn(
-                            "結果を送信してもよいですか？ [y/N]: "
+                            f"結果を送信してもよいですか？ 回答数: {len(cls.answer)}/{cls.problems_data[-1].data} [y/N]: "
                         ):
                             break
 
                         logger.info("十分なデータが得られなかったため、追加の分割データを取得します。")
-                        # 次のCUDA処理のためのマスクを作成
-                        cls.makemask(cls.answer, cls.srcs_mask)
-
-                        with open(resfile_path, "w") as f:
-                            res = ResumeData(
-                                answer=cls.answer, mask=cls.srcs_mask.tolist()
-                            )
-                            f.write(res.json())
 
                     # <--break
                     libs.send_answer(cls.problems_data[-1].id, cls.answer)
@@ -289,18 +293,31 @@ class App:
         # ztest = (filtered[:, 1] - mean) / std
 
         # 最後にanswerに追加して終了
-        debug_id = [(x - 1) % 44 + 1 for x in target[:, 0]]
-        for num, zvalue in zip(target[:, 0], zscored):
-            if abs(zvalue) > libs.FILTER_THRESHOLD:
-                answer.add(num)
 
-        logger.info(f"候補以外のzscoreの値:")
-        zs_other = np.sort(((filtered[:, 1] - mean) / std))
-        print(zs_other)
-        logger.info(f"候補のzscoreの値: {zscored}")
+        tmp_answer: set[int] = None
 
-        temp_ans = [f"{(x-1)%44+1:02}" for x in answer]
-        logger.info(f"暫定的な回答: answer={temp_ans}\n")
+        thr = libs.FILTER_THRESHOLD
+        while True:
+            tmp_answer = set()
+            for num, zvalue in zip(target[:, 0], zscored):
+                if abs(zvalue) > thr:
+                    tmp_answer.add(num)
+
+            logger.info(f"候補以外のzscoreの値:")
+            zs_other = np.sort(((filtered[:, 1] - mean) / std))
+            print(zs_other)
+            logger.info(f"候補のzscoreの値: {zscored}")
+
+            merged = tmp_answer | answer
+            dbprint = cls.ans2id(merged)
+            logger.info(f"閾値: {thr} 今回追加される読み札: {cls.ans2id(answer - tmp_answer)}")
+            logger.info(f"暫定的な回答: answer={dbprint}, 回答数: {len(merged)}/{pd.data}\n")
+
+            if cls.ask_yn("閾値(絶対値)を変更しますか？: [y/N]"):
+                thr = float(input("閾値を入力して下さい: "))
+            else:
+                answer.update(tmp_answer)
+                break
 
     @classmethod
     def del_choosed(
@@ -311,6 +328,7 @@ class App:
         answers: set[int],
     ):
         for answer in answers:
+            print("before:", answer, np.sum(np.abs(chunk)))
             src = comped_srcs[answer - 1]
             src_len = len(src)
             chunk_len = len(chunk)
@@ -324,6 +342,8 @@ class App:
             chunk[clip_starti:clip_endi] = (
                 chunk[clip_starti:clip_endi] - src[src_starti:src_endi]
             )
+
+            print("after:", np.sum(np.abs(chunk)))
 
             # if stpos <= 0:
             #     chunk_end = len(src) + stpos
@@ -344,12 +364,10 @@ class App:
     # もう一度CUDAを実行できる余地があればTrue
     # まだ消せるか？
     @classmethod
-    def verify_chunk(cls, chunk: npt.NDArray[np.int16]) -> bool:
+    def should_more_process(cls, chunk: npt.NDArray[np.int16]) -> bool:
         filling_rate = np.sum(np.abs(chunk)) / len(chunk)
-        print(filling_rate)
-        if filling_rate > 0:
-            pass
-        return False
+        logger.info(f"chunkの充填率: {filling_rate}")
+        return cls.ask_yn("もう一度CUDAを実行しますか？: ")
 
     @classmethod
     def makemask(cls, answer: set[int], mask: npt.NDArray[np.bool_]):
@@ -373,3 +391,7 @@ class App:
                 return True
             elif choice in ["n", "no"]:
                 return False
+
+    @classmethod
+    def ans2id(cls, ids: set[int]):
+        return str([f"{(x-1)%44+1:02}" for x in ids])
