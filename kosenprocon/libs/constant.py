@@ -1,7 +1,7 @@
 import configparser
 
 # check
-IS_LOCAL = True
+IS_LOCAL = False
 API_URL = r"http://172.28.1.1:80"
 PROXY = {
     "http": "",
